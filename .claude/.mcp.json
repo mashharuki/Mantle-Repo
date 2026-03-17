@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "drawio": {
+      "command": "npx",
+      "args": ["@drawio/mcp@latest"]
+    },
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server"
+      ]
+    },
+    "mantle": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["./mantle-agent-scaffold/dist/index.js"],
+      "env": {
+        "MANTLE_MCP_TRANSPORT": "stdio",
+        "MANTLE_RPC_URL": "https://rpc.mantle.xyz",
+        "MANTLE_SEPOLIA_RPC_URL": "https://rpc.sepolia.mantle.xyz"
+      }
+    }
+  }
+}

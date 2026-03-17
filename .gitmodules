@@ -1,0 +1,3 @@
+[submodule "mantle-agent-scaffold"]
+	path = mantle-agent-scaffold
+	url = https://github.com/mantle-xyz/mantle-agent-scaffold.git

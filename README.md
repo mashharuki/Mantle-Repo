@@ -44,3 +44,5 @@ pnpm run build
 - [mantle-xyz/mantle-agent-scaffold](https://github.com/mantle-xyz/mantle-agent-scaffold)
 - [MCPサーバーの設定](https://mantle-xyz.github.io/mantle-agent-scaffold/)
 - [Mantle チュートリアル](https://mantlenetworkio.github.io/mantle-tutorial/)
+- [Mantle 公式ドキュメント](https://docs.mantle.xyz/network/introduction/overview)
+- [MantleScan](https://mantlescan.xyz/)

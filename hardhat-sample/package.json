@@ -1,0 +1,25 @@
+{
+  "name": "hardhat-sample",
+  "version": "1.0.0",
+  "description": "Mantle Network Hardhat 3 Tutorial Project",
+  "type": "module",
+  "scripts": {
+    "build": "npx hardhat build",
+    "test": "npx hardhat test",
+    "test:solidity": "npx hardhat test solidity",
+    "test:ts": "npx hardhat test nodejs",
+    "node": "npx hardhat node",
+    "deploy:local": "npx hardhat ignition deploy ignition/modules/Counter.ts",
+    "deploy:mantle-sepolia": "npx hardhat ignition deploy ignition/modules/Counter.ts --network mantleSepolia"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.7",
+    "hardhat": "^3.0.0"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.9",
+    "@nomicfoundation/hardhat-ignition-viem": "^3.0.9",
+    "viem": "^2.47.4"
+  }
+}

@@ -6,6 +6,12 @@ This is Mantle repo
 
 イーサリアムL2 Mantleについての開発手法をまとめたリポジトリです。
 
+## GitSubModuleのセットアップ
+
+```bash
+git submodule update --init --recursive
+```
+
 ## MCPサーバーの起動方法
 
 `mantle-agent-scaffold`配下で以下のコマンドを順番に実行する

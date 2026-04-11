@@ -1,333 +1,339 @@
-# Mantle Network AI Agent — 実装計画書
+# mantle-agent AWS デプロイ実装計画
 
-## 概要
-
-Mantle Network に特化した AI エージェントアプリケーション。  
-Next.js 16 + Mastra フレームワークを基盤に、Mantle の全 10 スキル領域をカバーする 16 個のツールを実装し、チャット UI から自然言語でアクセスできる。
-
----
-
-## 技術スタック
-
-| 層 | 技術 |
-|---|---|
-| フロントエンド | Next.js 16 (App Router), React, Tailwind CSS v4 |
-| AI フレームワーク | Mastra (`@mastra/core`, `@mastra/memory`, `@mastra/ai-sdk`) |
-| AI SDK | AI SDK v6 (`ai`, `@ai-sdk/react`) |
-| UI コンポーネント | shadcn/ui + AI Elements (`src/components/ai-elements/`) |
-| 型チェック / フォーマット | TypeScript 5 (target ES2022), Biome |
-| モデル | `google/gemini-2.5-pro`（Mastra モデルルーター経由） |
-| メモリ永続化 | `@mastra/memory` (LibSQL ベース) + `localStorage` スレッド ID |
-
----
-
-## ファイル構成
+## モノレポ構成（現状）
 
 ```
 mantle-agent/
-├── src/
-│   ├── mastra/
-│   │   ├── index.ts                        Mastra インスタンス初期化・エージェント登録
-│   │   ├── agents/
-│   │   │   └── mantle-agent.ts             Mantle エージェント定義（16 ツール束縛）
-│   │   └── tools/
-│   │       ├── network-primer-tool.ts      スキル①: チェーン基礎情報
-│   │       ├── portfolio-tools.ts          スキル②: 残高・アローワンス
-│   │       ├── address-registry-tools.ts   スキル③: アドレス解決・検証
-│   │       ├── defi-tools.ts               スキル④: DeFi ベニュー・スワップ見積
-│   │       ├── risk-evaluator-tool.ts      スキル⑤: 事前リスクチェック
-│   │       ├── tx-simulator-tool.ts        スキル⑥: トランザクション模擬実行
-│   │       ├── debugger-tool.ts            スキル⑦: RPC エラー診断
-│   │       ├── data-indexer-tool.ts        スキル⑧: 過去データクエリ生成
-│   │       ├── contract-developer-tools.ts スキル⑨: コントラクト設計検証
-│   │       └── contract-deployer-tools.ts  スキル⑩: デプロイ前チェックリスト
-│   ├── app/
-│   │   ├── layout.tsx                      dark モード固定 + メタデータ
-│   │   ├── page.tsx                        チャット UI（メインページ）
-│   │   ├── globals.css                     Mantle ブランドカラー CSS 変数
-│   │   └── api/
-│   │       └── chat/
-│   │           └── route.ts                AI SDK v6 ストリーミング API ルート
-│   └── components/
-│       └── ai-elements/                    AI チャット UI コンポーネント群
-├── next.config.ts                          DuckDB native bindings 除外設定
-├── tsconfig.json                           target: ES2022（BigInt 対応）
-└── PLAN.md                                 本ファイル
+├── package.json          ← Bun workspaces: ["pkgs/*"]
+├── bun.lockb
+└── pkgs/
+    ├── frontend/         ← Next.js 16 + Mastra アプリ
+    └── cdk/              ← CDK プロジェクト（空スタック → ここを実装）
 ```
 
----
+## アーキテクチャ
 
-## エージェント定義
+**Lambda Web Adapter + CDK TypeScript**
 
-### `mantle-agent.ts`
-
-```typescript
-export const mantleAgent = new Agent({
-  id: "mantleAgent",
-  name: "Mantle Network AI Agent",
-  model: "google/gemini-2.5-pro",
-  memory: new Memory(),
-  tools: { /* 16 ツール全て */ },
-  instructions: SYSTEM_PROMPT,
-});
+```
+CloudFront
+  ├── /_next/static/*  → S3 Bucket（静的アセット・長期キャッシュ）
+  └── /*               → Lambda Function URL（SSR + /api/chat ストリーミング）
+                              ↓
+                    Lambda (Docker, arm64, 2048MB, 120s)
+                      ├── Lambda Web Adapter v0.9.1
+                      ├── Next.js 16 standalone
+                      └── Mastra Agent
+                            ├── LibSQL → Turso (env var)
+                            └── DuckDB → in-memory
+                              ↓
+                    SSM Parameter Store (SecureString)
+                      - GOOGLE_GENERATIVE_AI_API_KEY
+                      - LIBSQL_URL / LIBSQL_AUTH_TOKEN
+                      - MANTLE_RPC_MAINNET / TESTNET
+                      - TENDERLY_ACCESS_KEY / ACCOUNT / PROJECT
 ```
 
-**システムプロンプト構成**:
-1. **Identity** — Mantle L2 専門エージェント
-2. **Mantle 絶対ルール** — ガストークンは MNT / チェーン ID 5000・5003 / スナップショット日明示
-3. **Read-only 原則** — 状態変更トランザクションは絶対実行しない
-4. **ツール活用指針** — DeFi → `getDeFiVenues` 先行、リスク評価 → 模擬実行の順
-5. **ドメイン別動作** — 各スキルで使うツールの呼び出し順序を明示
+### Amplify Gen2 ではなく Lambda Web Adapter を選ぶ理由
+
+| 観点 | Lambda Web Adapter + CDK | Amplify Gen2 |
+|------|--------------------------|--------------|
+| DuckDB ネイティブ依存 | ✅ Docker で arch 一致保証 | ⚠️ 動作保証なし |
+| 60 秒ストリーミング | ✅ Function URL で解決 | ⚠️ デフォルト設定と競合リスク |
+| IaC 完全制御 | ✅ CDK TypeScript | ⚠️ Amplify ラッパー制約あり |
+| 既存 `pkgs/cdk/` との親和性 | ✅ そのまま実装追加 | ❌ 別途 amplify/ 構成が必要 |
 
 ---
 
-## ツール一覧（16 個）
+## 変更ファイル一覧
 
-### スキル①: ネットワーク基礎情報
-
-| ツール | 説明 |
-|---|---|
-| `getMantleNetworkInfo` | チェーン ID・RPC・ガストークン・L1/L2 コントラクト情報を静的データで返す。スナップショット日 2026-03-08 を常に明示 |
-
-**入力**: `topic: enum(basics | mainnet | testnet | differences | contracts)`  
-**特徴**: ネットワーク呼び出しなし、完全静的
-
----
-
-### スキル②: ポートフォリオ分析
-
-| ツール | 説明 |
-|---|---|
-| `getWalletBalance` | `eth_getBalance` + WMNT/USDT/USDC/WETH の `balanceOf` multicall |
-| `getTokenAllowances` | 主要 DEX ルーターへの `allowance` 照会。`>= 2^255` → unlimited 判定 |
-
-**RPC**: `MANTLE_RPC_MAINNET` 環境変数（デフォルト `https://rpc.mantle.xyz`）
+| ファイル | 種別 | 変更内容 |
+|---------|------|---------|
+| `pkgs/frontend/next.config.ts` | 変更 | `output: "standalone"` 追加 |
+| `pkgs/frontend/Dockerfile` | 新規 | LWA + Node 22 + standalone |
+| `pkgs/frontend/src/app/api/health/route.ts` | 新規 | LWA ヘルスチェック用エンドポイント |
+| `pkgs/frontend/src/mastra/index.ts` | 変更 | LibSQL → env var（Turso）、DuckDB → in-memory |
+| `pkgs/cdk/lib/cdk-stack.ts` | 変更 | Lambda + Function URL + CloudFront + S3 実装 |
+| `pkgs/cdk/bin/cdk.ts` | 変更 | account/region 設定 |
 
 ---
 
-### スキル③: アドレスレジストリ
+## 実装詳細
 
-| ツール | 説明 |
-|---|---|
-| `resolveContractAddress` | registry の 8 契約（Merchant Moe・Agni・Aave v3）を name/alias/label で検索 |
-| `validateAddress` | EIP-55 チェックサム検証 + registry 照合 → pass / warn / fail 判定 |
-
-**データソース**: TypeScript 定数としてインライン化（webpack バンドル問題を回避）
-
----
-
-### スキル④: DeFi オペレーション
-
-| ツール | 説明 |
-|---|---|
-| `getDeFiVenues` | Merchant Moe・Agni・Aave v3 のティア情報を返す（静的） |
-| `getSwapQuote` | Agni QuoterV2 `eth_call` でスワップ見積もり取得 |
-| `getLiquidityPools` | registry のプール・ポジションマネージャーエントリ一覧 |
-
----
-
-### スキル⑤: リスク評価
-
-| ツール | 説明 |
-|---|---|
-| `evaluateTransactionRisk` | 入力完全性・スリッページ・アドレス安全性・アローワンス・ガス・デッドライン の 6 項目チェック。any fail → block / any warn → warn / all pass → pass |
-
----
-
-### スキル⑥: トランザクション模擬実行
-
-| ツール | 説明 |
-|---|---|
-| `simulateTransaction` | Tenderly API 優先、フォールバックは `eth_estimateGas` + `eth_call`。WYSIWYS サマリーを生成。**実トランザクションは絶対送信しない** |
-
----
-
-### スキル⑦: デバッガー
-
-| ツール | 説明 |
-|---|---|
-| `debugRpcError` | エラーパターンマッチング（rate limit・revert・nonce・gas・insufficient funds・contract not found）。ネットワーク呼び出しなし |
-
----
-
-### スキル⑧: データインデクサー
-
-| ツール | 説明 |
-|---|---|
-| `queryHistoricalData` | wallet_swaps・pool_volume・wallet_activity・top_pools の GraphQL/SQL テンプレート生成。endpoint 指定時のみ実際の fetch を実行 |
-
----
-
-### スキル⑨: コントラクト開発
-
-| ツール | 説明 |
-|---|---|
-| `getContractTemplate` | ERC-20・ERC-721・ERC-1155・ガバナンス・ステーキング・マルチシグ の 6 テンプレートメタデータ |
-| `validateContractArchitecture` | アクセス制御・アップグレーダビリティ・ガス最適化・セキュリティチェックリスト評価 |
-
----
-
-### スキル⑩: コントラクトデプロイ
-
-| ツール | 説明 |
-|---|---|
-| `getDeploymentChecklist` | デプロイ前全チェックリスト（コンパイル・監査・テスト・ガス・マルチシグ等） |
-| `prepareDeploymentPackage` | 未署名デプロイパッケージ生成。`nextStep` は常に「外部署名者でブロードキャスト」 |
-
----
-
-## API ルート
+### 1. `pkgs/frontend/next.config.ts`
 
 ```typescript
-// src/app/api/chat/route.ts
-import { handleChatStream } from "@mastra/ai-sdk";
-import { createUIMessageStreamResponse } from "ai";
+import type { NextConfig } from "next";
 
-export const runtime = "nodejs";  // LibSQL は Edge 非対応
-export const maxDuration = 60;
+const nextConfig: NextConfig = {
+  output: "standalone",  // ← 追加
+  serverExternalPackages: [
+    "@duckdb/node-api",
+    "@duckdb/node-bindings",
+    "@mastra/duckdb",
+    "@libsql/client",
+    "better-sqlite3",
+  ],
+};
 
-export async function POST(req: Request) {
-  const params = await req.json();
-  const stream = await handleChatStream({
-    mastra,
-    agentId: "mantleAgent",
-    params,
-    version: "v6",  // AI SDK v6 ストリーム形式
-  });
-  return createUIMessageStreamResponse({ stream });
+export default nextConfig;
+```
+
+### 2. `pkgs/frontend/Dockerfile`
+
+```dockerfile
+# ── ビルドステージ ──
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# ── 実行ステージ（Lambda Web Adapter 組み込み） ──
+FROM node:22-alpine AS runner
+
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 \
+  /lambda-adapter /opt/extensions/lambda-adapter
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV AWS_LAMBDA_EXEC_WRAPPER=/opt/extensions/lambda-adapter
+ENV AWS_LWA_READINESS_CHECK_PATH=/api/health
+ENV AWS_LWA_INVOKE_MODE=response_stream
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+### 3. `pkgs/frontend/src/app/api/health/route.ts`
+
+```typescript
+export async function GET() {
+  return Response.json({ status: "ok" });
 }
 ```
 
-**ポイント**: `@mastra/ai-sdk` の `handleChatStream` を使い、AI SDK v6 形式でストリーミング。`params` に含まれる `memory.thread` / `memory.resource` がそのまま Mastra メモリへ渡る。
-
----
-
-## UI 構成
-
-### ページレイアウト
-
-```
-<div h-screen flex-col>
-  <header>                        Mantle ロゴ + StatusDot（応答中/待機中）
-  <Conversation flex-1>           スクロール可能な会話エリア
-    <MantleEmptyState />           初期状態: 6 つのサジェストチップ
-    {messages.map(MantleMessage)}  メッセージ一覧
-    <ConversationScrollButton />
-  <footer>                        PromptInput（入力エリア）
-```
-
-### `useChat` 設定（AI SDK v6）
+### 4. `pkgs/frontend/src/mastra/index.ts` — DB 設定変更箇所
 
 ```typescript
-const transport = useMemo(() => new DefaultChatTransport({
-  prepareSendMessagesRequest: ({ messages }) => ({
-    body: {
-      messages,
-      memory: {
-        thread: threadIdRef.current,  // localStorage から永続化
-        resource: "user",
+// 変更前
+default: new LibSQLStore({ id: "mastra-storage", url: "file:./mastra.db" }),
+domains: {
+  observability: await new DuckDBStore().getStore("observability"),
+},
+
+// 変更後
+default: new LibSQLStore({
+  id: "mastra-storage",
+  url: process.env.LIBSQL_URL ?? "file:./mastra.db",
+  authToken: process.env.LIBSQL_AUTH_TOKEN,
+}),
+domains: {
+  observability: await new DuckDBStore({ url: ":memory:" }).getStore("observability"),
+},
+```
+
+### 5. `pkgs/cdk/lib/cdk-stack.ts`
+
+```typescript
+import * as cdk from "aws-cdk-lib/core";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import * as ssm from "aws-cdk-lib/aws-ssm";
+import * as logs from "aws-cdk-lib/aws-logs";
+import { Construct } from "constructs";
+import * as path from "path";
+
+export class CdkStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const getParam = (name: string) =>
+      ssm.StringParameter.valueForStringParameter(this, `/mantle-agent/${name}`);
+
+    const frontendDir = path.join(__dirname, "../../frontend");
+
+    // Lambda Function（Docker イメージ）
+    const fn = new lambda.DockerImageFunction(this, "NextjsFunction", {
+      functionName: "mantle-agent",
+      code: lambda.DockerImageCode.fromImageAsset(frontendDir),
+      architecture: lambda.Architecture.ARM_64,
+      memorySize: 2048,
+      timeout: cdk.Duration.seconds(120),
+      logRetention: logs.RetentionDays.ONE_WEEK,
+      environment: {
+        GOOGLE_GENERATIVE_AI_API_KEY: getParam("GOOGLE_GENERATIVE_AI_API_KEY"),
+        LIBSQL_URL:                   getParam("LIBSQL_URL"),
+        LIBSQL_AUTH_TOKEN:            getParam("LIBSQL_AUTH_TOKEN"),
+        TENDERLY_ACCESS_KEY:          getParam("TENDERLY_ACCESS_KEY"),
+        TENDERLY_ACCOUNT:             getParam("TENDERLY_ACCOUNT"),
+        TENDERLY_PROJECT:             getParam("TENDERLY_PROJECT"),
+        MANTLE_RPC_MAINNET: "https://rpc.mantle.xyz",
+        MANTLE_RPC_TESTNET: "https://rpc.sepolia.mantle.xyz",
       },
-    },
-  }),
-}), []);
+    });
 
-const { messages, sendMessage, stop, status } = useChat({ transport });
+    // Lambda Function URL（ストリーミング）
+    const fnUrl = fn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+      invokeMode: lambda.InvokeMode.RESPONSE_STREAM,
+      cors: {
+        allowedOrigins: ["*"],
+        allowedHeaders: ["content-type", "authorization"],
+        allowedMethods: [lambda.HttpMethod.ALL],
+      },
+    });
+
+    // S3 バケット（静的アセット）
+    const staticBucket = new s3.Bucket(this, "StaticAssetsBucket", {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    // CloudFront Distribution
+    const distribution = new cloudfront.Distribution(this, "Distribution", {
+      comment: "mantle-agent",
+      defaultBehavior: {
+        origin: new origins.FunctionUrlOrigin(fnUrl),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      },
+      additionalBehaviors: {
+        "/_next/static/*": {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(staticBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        },
+      },
+    });
+
+    // 静的アセットを S3 にデプロイ
+    new s3deploy.BucketDeployment(this, "StaticAssetsDeployment", {
+      sources: [s3deploy.Source.asset(path.join(frontendDir, ".next/static"))],
+      destinationBucket: staticBucket,
+      destinationKeyPrefix: "_next/static",
+      distribution,
+      distributionPaths: ["/_next/static/*"],
+    });
+
+    new cdk.CfnOutput(this, "AppUrl", {
+      value: `https://${distribution.distributionDomainName}`,
+      description: "mantle-agent URL",
+    });
+  }
+}
 ```
 
-### メモリ永続化フロー
+### 6. `pkgs/cdk/bin/cdk.ts`
 
+```typescript
+#!/usr/bin/env node
+import * as cdk from "aws-cdk-lib/core";
+import { CdkStack } from "../lib/cdk-stack";
+
+const app = new cdk.App();
+new CdkStack(app, "MantleAgentStack", {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION ?? "ap-northeast-1",
+  },
+  stackName: "mantle-agent",
+});
 ```
-ブラウザ起動
-  → localStorage から threadId 取得（なければ nanoid で生成・保存）
-  → useRef で最新値を追跡
-  → sendMessage 時に memory.thread として API へ送信
-  → Mastra Memory が LibSQL に会話履歴を保存
-  → ページリフレッシュ後も同じ threadId で継続
-```
-
-### `MantleMessage` コンポーネント
-
-- `part.type === "text"` → `MessageResponse`（ストリーミング時アニメーション）
-- `part.type.startsWith("tool-")` → `MantleToolDisplay`（左ボーダー `#6BE2FF` のツールパネル）
 
 ---
 
-## ブランドデザイン
-
-| 要素 | 値 |
-|---|---|
-| プライマリカラー | `#6BE2FF`（Mantle Blue） |
-| 背景 | `oklch(0.10 0 0)`（深いダーク） |
-| カード | `oklch(0.14 0.005 250)` |
-| ボーダー | `oklch(0.22 0.01 250 / 80%)` |
-| テーマ | ダークモード固定（`<html class="dark">`） |
-
----
-
-## 環境変数
-
-```env
-# 必須
-GOOGLE_GENERATIVE_AI_API_KEY=
-
-# 任意（デフォルト値あり）
-MANTLE_RPC_MAINNET=https://rpc.mantle.xyz
-MANTLE_RPC_TESTNET=https://rpc.sepolia.mantle.xyz
-
-# 任意（Tenderly 模擬実行を有効化）
-TENDERLY_ACCESS_KEY=
-TENDERLY_ACCOUNT=
-TENDERLY_PROJECT=
-
-# 任意（Mastra Cloud 監視）
-MASTRA_CLOUD_ACCESS_TOKEN=
-```
-
----
-
-## ビルド・起動手順
+## 事前準備（手動・初回のみ）
 
 ```bash
-# 依存関係インストール
-npm install
+# 1. Turso で LibSQL リモート DB 作成
+turso db create mantle-agent
+turso db tokens create mantle-agent
 
-# 開発サーバー起動（Next.js + Mastra Studio）
-npm run dev        # http://localhost:3000
-# Mastra Studio:  http://localhost:4111
+# 2. SSM Parameter Store にシークレットを登録
+aws ssm put-parameter --name "/mantle-agent/GOOGLE_GENERATIVE_AI_API_KEY" \
+  --value "AIza..." --type SecureString
+aws ssm put-parameter --name "/mantle-agent/LIBSQL_URL" \
+  --value "libsql://mantle-agent-xxx.turso.io" --type SecureString
+aws ssm put-parameter --name "/mantle-agent/LIBSQL_AUTH_TOKEN" \
+  --value "eyJ..." --type SecureString
+aws ssm put-parameter --name "/mantle-agent/TENDERLY_ACCESS_KEY" \
+  --value "..." --type SecureString
+aws ssm put-parameter --name "/mantle-agent/TENDERLY_ACCOUNT" \
+  --value "..." --type SecureString
+aws ssm put-parameter --name "/mantle-agent/TENDERLY_PROJECT" \
+  --value "..." --type SecureString
 
-# 本番ビルド確認
-npm run build
-
-# コードフォーマット
-bunx biome format --write .
+# 3. CDK Bootstrap（アカウント・リージョンごとに初回のみ）
+cd pkgs/cdk
+npx cdk bootstrap
 ```
 
 ---
 
-## 実装上の重要決定事項
+## デプロイ手順
 
-| 課題 | 決定 |
-|---|---|
-| DuckDB native bindings のバンドルエラー | `next.config.ts` で `serverExternalPackages` に `@duckdb/*` を追加 |
-| Zod `.default()` フィールドの型問題 | `inputData.field ?? "default"` でフォールバック（デストラクチャリングを避ける） |
-| AI SDK v6 `useChat` API 変更 | `api`/`body` オプション廃止 → `DefaultChatTransport` + `prepareSendMessagesRequest` |
-| `append` の廃止 | `sendMessage({ text })` に変更 |
-| Mastra `threadId`/`resourceId` 廃止 | `memory: { thread, resource }` に変更（`handleChatStream` が自動処理） |
-| BigInt リテラル (`0n`) のコンパイルエラー | `tsconfig.json` の `target` を `ES2017` → `ES2022` に変更 |
-| PromptInputController の API 変更 | `controller.setTextInput(v)` → `controller.textInput.setInput(v)` |
-| `schema-display.tsx` の型エラー | `children as string \| undefined` キャストを追加 |
+```bash
+# Step 1: フロントエンドをビルド（静的アセット生成のため必要）
+cd pkgs/frontend
+npm run build
+
+# Step 2: CDK デプロイ（Docker ビルド & Lambda 更新を自動実行）
+cd ../cdk
+npx cdk diff    # 変更内容の確認
+npx cdk deploy  # デプロイ実行
+```
+
+Bun のフィルタースクリプト経由（ルートから）:
+
+```bash
+bun run --filter cdk synth
+bun run --filter cdk deploy
+```
 
 ---
 
-## 検証シナリオ
+## 動作確認
 
-| # | 入力例 | 期待ツール | 期待結果 |
-|---|---|---|---|
-| 1 | "Mantle とは？" | `getMantleNetworkInfo` | chain ID 5000、ガストークン MNT |
-| 2 | "0xDead...の残高は？" | `getWalletBalance` | MNT + ERC-20 トークン一覧 |
-| 3 | "Merchant Moe のルーターアドレスは？" | `resolveContractAddress` | 検証済みアドレス + ソース URL |
-| 4 | "1 WMNT → USDC の見積もり" | `getDeFiVenues` → `getSwapQuote` | 2 ステップで見積もり金額 |
-| 5 | "スワップのリスクを評価して" | `evaluateTransactionRisk` | pass / warn / block 判定 |
-| 6 | "rate limit exceeded エラーを診断" | `debugRpcError` | 診断 + 次のアクション |
-| 7 | ページリフレッシュ後に続きの質問 | — | Memory が threadId で継続 |
-| 8 | ツール呼び出し時の UI | — | `#6BE2FF` 左ボーダー付きパネル |
+```bash
+CF_URL="https://xxxx.cloudfront.net"
+
+# ヘルスチェック
+curl "$CF_URL/api/health"
+# → {"status":"ok"}
+
+# チャット（ストリーミング）
+curl -X POST "$CF_URL/api/chat" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Mantle networkとは？"}]}'
+```
+
+---
+
+## コスト試算（月次・東京リージョン）
+
+| 項目 | 試算 |
+|------|------|
+| Lambda（2048MB × 60s × 1,000 req/月） | ~$2–5 |
+| CloudFront | ~$1–3 |
+| Turso（無料枠: 500DB, 9GB） | $0 |
+| S3 / ECR | ~$0.1 |
+| SSM Parameter Store | $0 |
+| **合計（低負荷）** | **~$3–8/月** |

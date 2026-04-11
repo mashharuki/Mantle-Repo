@@ -9,12 +9,10 @@ import {
 	CloudExporter,
 	SensitiveDataFilter,
 } from "@mastra/observability";
-import { weatherWorkflow } from "./workflows/weather-workflow";
-import { weatherAgent } from "./agents/weather-agent";
+import { mantleAgent } from "./agents/mantle-agent";
 
 export const mastra = new Mastra({
-	workflows: { weatherWorkflow },
-	agents: { weatherAgent },
+	agents: { mantleAgent },
 	storage: new MastraCompositeStore({
 		id: "composite-storage",
 		default: new LibSQLStore({
@@ -32,7 +30,7 @@ export const mastra = new Mastra({
 	observability: new Observability({
 		configs: {
 			default: {
-				serviceName: "mastra",
+				serviceName: "mantle-agent",
 				exporters: [
 					new DefaultExporter(), // Persists traces to storage for Mastra Studio
 					new CloudExporter(), // Sends traces to Mastra Cloud (if MASTRA_CLOUD_ACCESS_TOKEN is set)

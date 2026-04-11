@@ -19,7 +19,7 @@ export function MantlePromptArea({
 
   return (
     <PromptInputBody>
-      <PromptInputTextarea placeholder="Mantle について質問してください…" />
+      <PromptInputTextarea placeholder="Mantle に何でも聞いてください…" />
     </PromptInputBody>
   );
 }

@@ -1,4 +1,5 @@
 import { MANTLE_BLUE } from "@/utils/constants";
+import { TerminalIcon } from "lucide-react";
 
 /**
  * submitted 状態（送信後・最初のトークン到達前）に表示する
@@ -6,16 +7,16 @@ import { MANTLE_BLUE } from "@/utils/constants";
  */
 export function MantleThinkingIndicator() {
 	return (
-		<div className="flex items-start gap-3">
+		<div className="flex items-start gap-2.5">
 			<div
-				className="flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold select-none"
+				className="flex size-7 shrink-0 items-center justify-center rounded-md select-none"
 				style={{
-					background: `linear-gradient(135deg, ${MANTLE_BLUE}20, ${MANTLE_BLUE}08)`,
-					border: `1px solid ${MANTLE_BLUE}30`,
+					background: `${MANTLE_BLUE}18`,
+					border: `1px solid ${MANTLE_BLUE}28`,
 					color: MANTLE_BLUE,
 				}}
 			>
-				M
+				<TerminalIcon className="size-3.5" />
 			</div>
 			<div
 				className="flex items-center gap-1.5 rounded-2xl px-4 py-3"

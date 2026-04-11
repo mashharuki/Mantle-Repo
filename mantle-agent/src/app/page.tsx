@@ -10,23 +10,20 @@ import {
 	PromptInputFooter,
 	PromptInputProvider,
 	PromptInputSubmit,
-	type PromptInputMessage
+	type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { MantleEmptyState } from "@/components/mantle/MantleEmptyState";
 import { MantleMessage } from "@/components/mantle/MantleMessage";
 import { MantlePromptArea } from "@/components/mantle/MantlePromptArea";
+import { MantleSidebar } from "@/components/mantle/MantleSidebar";
 import { MantleThinkingIndicator } from "@/components/mantle/MantleThinkingIndicator";
-import { StatusDot } from "@/components/mantle/StatusDot";
+import { MantleTopBar } from "@/components/mantle/MantleTopBar";
 import { useLocalStorageId } from "@/hooks/useLocalStorageId";
-import { MANTLE_BLUE } from "@/utils/constants";
+import { MANTLE_BLUE, MANTLE_BORDER, MANTLE_DARK_BG } from "@/utils/constants";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-/**
- * Page コンポーネント
- * @returns 
- */
 export default function Page() {
 	const threadId = useLocalStorageId("mantle-thread-id");
 
@@ -47,23 +44,22 @@ export default function Page() {
 
 	const { messages, sendMessage, stop, status } = useChat({ transport });
 
-	// MantleEmptyState で提案がクリックされたときに、どの提案がクリックされたかを保存する state
-	const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(
-		null,
-	);
-
-	// MantleEmptyState で提案がクリックされたときに pendingSuggestion に保存する
+	const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
 	const clearPending = useCallback(() => setPendingSuggestion(null), []);
-
-	// ステータスが "streaming" または "submitted" のときはストリーミング中とみなす
 	const isStreaming = status === "streaming" || status === "submitted";
 
-	/**
-	 * PromptInput の onSubmit ハンドラー
-	 * - 空白のみの入力は無視
-	 * - 送信前にトリムする
-	 * - 送信後は PromptInput 内で自動的に入力がクリアされる
-	 */
+	// セッションタイトル = 最初のユーザーメッセージ（先頭30文字）
+	const sessionTitle = useMemo(() => {
+		const first = messages.find((m) => m.role === "user");
+		if (!first) return "";
+		const text = first.parts
+			.filter((p) => p.type === "text")
+			.map((p) => p.text)
+			.join("")
+			.trim();
+		return text.length > 30 ? `${text.slice(0, 30)}…` : text;
+	}, [messages]);
+
 	const handleSubmit = useCallback(
 		(message: PromptInputMessage) => {
 			const text = message.text.trim();
@@ -73,88 +69,75 @@ export default function Page() {
 		[sendMessage],
 	);
 
-	/**
-	 * MantleEmptyState の提案をクリックしたときのハンドラー
-	 * - クリックされた提案を pendingSuggestion として保存
-	 * - MantlePromptArea に渡して表示させる
-	 * - ユーザーが送信するか、入力を変更するなどして提案が消費されたら pendingSuggestion をクリアする
-	 */
 	const handleSuggestionClick = useCallback((s: string) => {
 		setPendingSuggestion(s);
 	}, []);
 
+	const handleNewSession = useCallback(() => {
+		window.location.reload();
+	}, []);
+
 	return (
-		<div className="flex h-screen flex-col overflow-hidden bg-background">
-			{/* Header */}
-			<header
-				className="flex shrink-0 items-center gap-3 border-b px-5 py-3"
-				style={{ borderBottomColor: `${MANTLE_BLUE}20` }}
-			>
-				<div
-					className="flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
-					style={{
-						background: `linear-gradient(135deg, ${MANTLE_BLUE}20, ${MANTLE_BLUE}08)`,
-						border: `1px solid ${MANTLE_BLUE}30`,
-						color: MANTLE_BLUE,
-					}}
-				>
-					M
-				</div>
-				<div className="flex-1 min-w-0">
-					<span
-						className="text-sm font-semibold"
-						style={{ color: MANTLE_BLUE }}
-					>
-						Mantle AI Agent
-					</span>
-					<span className="ml-2 text-xs text-muted-foreground">
-						Mainnet · Sepolia · DeFi · Contracts
-					</span>
-				</div>
-				<StatusDot status={status} />
-			</header>
+		<div
+			className="flex h-screen overflow-hidden"
+			style={{ background: MANTLE_DARK_BG }}
+		>
+			{/* Left Sidebar */}
+			<MantleSidebar
+				sessionTitle={sessionTitle || undefined}
+				recentSessions={sessionTitle ? [sessionTitle] : undefined}
+				onNewSession={handleNewSession}
+			/>
 
-			{/* Conversation */}
-			<Conversation className="flex-1">
-				<ConversationContent className="space-y-4 px-4 py-6 max-w-3xl mx-auto w-full">
-					{messages.length === 0 ? (
-						<MantleEmptyState onSuggestionClick={handleSuggestionClick} />
-					) : (
-						messages.map((message, index) => (
-							<MantleMessage
-								key={message.id}
-								message={message}
-								isStreaming={isStreaming && index === messages.length - 1}
-							/>
-						))
-					)}
-					{status === "submitted" && <MantleThinkingIndicator />}
-				</ConversationContent>
-				<ConversationScrollButton />
-			</Conversation>
-
-			{/* Input */}
+			{/* Main area */}
 			<div
-				className="shrink-0 border-t px-4 py-3"
-				style={{ borderTopColor: `${MANTLE_BLUE}20` }}
+				className="flex min-w-0 flex-1 flex-col overflow-hidden"
 			>
-				<div className="max-w-3xl mx-auto">
-					<PromptInputProvider>
-						<PromptInput onSubmit={handleSubmit}>
-							<MantlePromptArea
-								pendingSuggestion={pendingSuggestion}
-								onPendingSuggestionConsumed={clearPending}
-							/>
-							<PromptInputFooter>
-								<div className="flex-1" />
-								<PromptInputSubmit
-									status={status}
-									onStop={stop}
-									style={{ backgroundColor: MANTLE_BLUE, color: "#000" }}
+				{/* Top bar */}
+				<MantleTopBar sessionTitle={sessionTitle} status={status} />
+
+				{/* Conversation */}
+				<Conversation className="flex-1">
+					<ConversationContent className="mx-auto w-full max-w-3xl space-y-4 px-4 py-6">
+						{messages.length === 0 ? (
+							<MantleEmptyState onSuggestionClick={handleSuggestionClick} />
+						) : (
+							messages.map((message, index) => (
+								<MantleMessage
+									key={message.id}
+									message={message}
+									isStreaming={isStreaming && index === messages.length - 1}
 								/>
-							</PromptInputFooter>
-						</PromptInput>
-					</PromptInputProvider>
+							))
+						)}
+						{status === "submitted" && <MantleThinkingIndicator />}
+					</ConversationContent>
+					<ConversationScrollButton />
+				</Conversation>
+
+				{/* Input area */}
+				<div
+					className="shrink-0 px-4 py-3"
+					style={{ borderTop: `1px solid ${MANTLE_BORDER}` }}
+				>
+					<div className="mx-auto max-w-3xl">
+						<PromptInputProvider>
+							<PromptInput onSubmit={handleSubmit}>
+								<MantlePromptArea
+									pendingSuggestion={pendingSuggestion}
+									onPendingSuggestionConsumed={clearPending}
+								/>
+								<PromptInputFooter>
+									<div className="flex-1" />
+									<PromptInputSubmit
+										status={status}
+										onStop={stop}
+										style={{ backgroundColor: MANTLE_BLUE, color: "#080B12" }}
+									/>
+								</PromptInputFooter>
+							</PromptInput>
+						</PromptInputProvider>
+					</div>
 				</div>
 			</div>
 		</div>

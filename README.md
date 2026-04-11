@@ -53,3 +53,5 @@ pnpm run build
 - [Mantle チュートリアル](https://mantlenetworkio.github.io/mantle-tutorial/)
 - [Mantle 公式ドキュメント](https://docs.mantle.xyz/network/introduction/overview)
 - [MantleScan](https://mantlescan.xyz/)
+- [DeepWiki Mantle Skill](https://deepwiki.com/mantle-xyz/mantle-skills)
+- [DeepWiki Mantle mantle-agent-scaffold](https://deepwiki.com/mantle-xyz/mantle-agent-scaffold?tab=readme-ov-file)

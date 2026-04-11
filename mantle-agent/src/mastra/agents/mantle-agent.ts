@@ -1,28 +1,28 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
-import { getMantleNetworkInfo } from "../tools/network-primer-tool";
-import { getWalletBalance, getTokenAllowances } from "../tools/portfolio-tools";
 import {
 	resolveContractAddress,
 	validateAddress,
 } from "../tools/address-registry-tools";
 import {
-	getDeFiVenues,
-	getSwapQuote,
-	getLiquidityPools,
-} from "../tools/defi-tools";
-import { evaluateTransactionRisk } from "../tools/risk-evaluator-tool";
-import { simulateTransaction } from "../tools/tx-simulator-tool";
-import { debugRpcError } from "../tools/debugger-tool";
-import { queryHistoricalData } from "../tools/data-indexer-tool";
+	getDeploymentChecklist,
+	prepareDeploymentPackage,
+} from "../tools/contract-deployer-tools";
 import {
 	getContractTemplate,
 	validateContractArchitecture,
 } from "../tools/contract-developer-tools";
+import { queryHistoricalData } from "../tools/data-indexer-tool";
+import { debugRpcError } from "../tools/debugger-tool";
 import {
-	getDeploymentChecklist,
-	prepareDeploymentPackage,
-} from "../tools/contract-deployer-tools";
+	getDeFiVenues,
+	getLiquidityPools,
+	getSwapQuote,
+} from "../tools/defi-tools";
+import { getMantleNetworkInfo } from "../tools/network-primer-tool";
+import { getTokenAllowances, getWalletBalance } from "../tools/portfolio-tools";
+import { evaluateTransactionRisk } from "../tools/risk-evaluator-tool";
+import { simulateTransaction } from "../tools/tx-simulator-tool";
 
 const SYSTEM_PROMPT = `You are the Mantle Network AI Agent — a specialized assistant for developers, traders, and power users building on Mantle, an Ethereum L2 network.
 
@@ -104,7 +104,7 @@ export const mantleAgent = new Agent({
 	id: "mantleAgent",
 	name: "Mantle Network AI Agent",
 	instructions: SYSTEM_PROMPT,
-	model: "google/gemini-2.5-pro",
+	model: "google/gemini-3.1-flash-lite-preview",
 	tools: {
 		getMantleNetworkInfo,
 		getWalletBalance,

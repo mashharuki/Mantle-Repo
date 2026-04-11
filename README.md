@@ -55,3 +55,6 @@ pnpm run build
 - [MantleScan](https://mantlescan.xyz/)
 - [DeepWiki Mantle Skill](https://deepwiki.com/mantle-xyz/mantle-skills)
 - [DeepWiki Mantle mantle-agent-scaffold](https://deepwiki.com/mantle-xyz/mantle-agent-scaffold?tab=readme-ov-file)
+- [Testnet Agni Finance](https://testnet.agni.finance/swap?chain=mantleTestnet)
+- [DeepWikiによるAgent SKILLの解説](https://deepwiki.com/search/_4f85863f-b448-4e68-9434-d8359422dc11)
+- [DeepWikiによるAgent SKILLの解説2](https://deepwiki.com/search/_c3d846fa-32bd-4117-8d5f-62c82e51d159)

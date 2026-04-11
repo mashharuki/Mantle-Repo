@@ -47,6 +47,7 @@ pnpm run build
 ```
 
 ## 参考文献
+- [GitHub Mantle Agent SKILL](https://github.com/mantle-xyz/mantle-skills)
 - [mantle-xyz/mantle-agent-scaffold](https://github.com/mantle-xyz/mantle-agent-scaffold)
 - [MCPサーバーの設定](https://mantle-xyz.github.io/mantle-agent-scaffold/)
 - [Mantle チュートリアル](https://mantlenetworkio.github.io/mantle-tutorial/)

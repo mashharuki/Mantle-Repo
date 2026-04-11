@@ -15,6 +15,7 @@ import {
 import { MantleEmptyState } from "@/components/mantle/MantleEmptyState";
 import { MantleMessage } from "@/components/mantle/MantleMessage";
 import { MantlePromptArea } from "@/components/mantle/MantlePromptArea";
+import { MantleThinkingIndicator } from "@/components/mantle/MantleThinkingIndicator";
 import { StatusDot } from "@/components/mantle/StatusDot";
 import { useLocalStorageId } from "@/hooks/useLocalStorageId";
 import { MANTLE_BLUE } from "@/utils/constants";
@@ -119,14 +120,15 @@ export default function Page() {
 					{messages.length === 0 ? (
 						<MantleEmptyState onSuggestionClick={handleSuggestionClick} />
 					) : (
-						messages.map((message) => (
+						messages.map((message, index) => (
 							<MantleMessage
 								key={message.id}
 								message={message}
-								isStreaming={isStreaming}
+								isStreaming={isStreaming && index === messages.length - 1}
 							/>
 						))
 					)}
+					{status === "submitted" && <MantleThinkingIndicator />}
 				</ConversationContent>
 				<ConversationScrollButton />
 			</Conversation>

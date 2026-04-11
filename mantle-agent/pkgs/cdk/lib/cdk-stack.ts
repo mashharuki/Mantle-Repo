@@ -1,18 +1,28 @@
-import * as cdk from "aws-cdk-lib/core";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as ssm from "aws-cdk-lib/aws-ssm";
-import * as logs from "aws-cdk-lib/aws-logs";
+import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 import * as path from "path";
 
+/**
+ * CDK スタック
+ */
 export class CdkStack extends cdk.Stack {
+  /**
+   * コンストラクター
+   * @param scope 
+   * @param id 
+   * @param props 
+   */
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    // ── SSM パラメータの取得関数 ──
     const getParam = (name: string) =>
       ssm.StringParameter.valueForStringParameter(this, `/mantle-agent/${name}`);
 
@@ -89,11 +99,15 @@ export class CdkStack extends cdk.Stack {
       distributionPaths: ["/_next/static/*"],
     });
 
+    // ========================================================================
     // ── Outputs ──
+    // ========================================================================
+
     new cdk.CfnOutput(this, "AppUrl", {
       value: `https://${distribution.distributionDomainName}`,
       description: "mantle-agent URL",
     });
+    
     new cdk.CfnOutput(this, "LambdaFunctionUrl", {
       value: fnUrl.url,
       description: "Lambda Function URL",

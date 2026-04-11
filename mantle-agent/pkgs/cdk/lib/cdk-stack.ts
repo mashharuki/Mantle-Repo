@@ -1,9 +1,5 @@
-import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
-import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
@@ -139,49 +135,7 @@ export class CdkStack extends cdk.Stack {
       },
     });
 
-    // ── S3 バケット（静的アセット _next/static/） ──
-    const staticBucket = new s3.Bucket(this, "StaticAssetsBucket", {
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      enforceSSL: true,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-    });
-
-    // ── CloudFront Distribution ──
-    const distribution = new cloudfront.Distribution(this, "Distribution", {
-      comment: "mantle-agent",
-      defaultBehavior: {
-        origin: new origins.FunctionUrlOrigin(fnUrl),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-        originRequestPolicy:
-          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-      },
-      additionalBehaviors: {
-        "/_next/static/*": {
-          origin: origins.S3BucketOrigin.withOriginAccessControl(staticBucket),
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        },
-      },
-    });
-
-    // ── 静的アセットを S3 にデプロイ ──
-    new s3deploy.BucketDeployment(this, "StaticAssetsDeployment", {
-      sources: [s3deploy.Source.asset(path.join(frontendDir, ".next/static"))],
-      destinationBucket: staticBucket,
-      destinationKeyPrefix: "_next/static",
-      distribution,
-      distributionPaths: ["/_next/static/*"],
-    });
-
     // ── Outputs ──
-    new cdk.CfnOutput(this, "AppUrl", {
-      value: `https://${distribution.distributionDomainName}`,
-      description: "mantle-agent URL",
-    });
-
     new cdk.CfnOutput(this, "LambdaFunctionUrl", {
       value: fnUrl.url,
       description: "Lambda Function URL",

@@ -24,12 +24,10 @@
     },
     "mantle": {
       "type": "stdio",
-      "command": "node",
-      "args": ["./mantle-agent-scaffold/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "github:mantle-xyz/mantle-agent-scaffold"],
       "env": {
-        "MANTLE_MCP_TRANSPORT": "stdio",
-        "MANTLE_RPC_URL": "https://rpc.mantle.xyz",
-        "MANTLE_SEPOLIA_RPC_URL": "https://rpc.sepolia.mantle.xyz"
+        "MANTLE_MCP_TRANSPORT": "stdio"
       }
     }
   }

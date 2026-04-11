@@ -17,10 +17,11 @@ export const mastra = new Mastra({
 		id: "composite-storage",
 		default: new LibSQLStore({
 			id: "mastra-storage",
-			url: "file:./mastra.db",
+			url: process.env.LIBSQL_URL ?? "file:./mastra.db",
+			authToken: process.env.LIBSQL_AUTH_TOKEN,
 		}),
 		domains: {
-			observability: await new DuckDBStore().getStore("observability"),
+			observability: await new DuckDBStore({ path: ":memory:" }).getStore("observability"),
 		},
 	}),
 	logger: new PinoLogger({

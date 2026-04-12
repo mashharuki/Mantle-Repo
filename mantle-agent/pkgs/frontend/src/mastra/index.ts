@@ -1,16 +1,18 @@
 import { Mastra } from "@mastra/core/mastra";
-import { PinoLogger } from "@mastra/loggers";
 import { LibSQLStore } from "@mastra/libsql";
+import { PinoLogger } from "@mastra/loggers";
 import {
-	Observability,
-	DefaultExporter,
 	CloudExporter,
+	DefaultExporter,
+	Observability,
 	SensitiveDataFilter,
 } from "@mastra/observability";
 import { mantleAgent } from "./agents/mantle-agent";
+import { mantleWorkspace } from "./workspace";
 
 export const mastra = new Mastra({
 	agents: { mantleAgent },
+	workspace: mantleWorkspace,
 	storage: new LibSQLStore({
 		id: "mastra-storage",
 		url: process.env.LIBSQL_URL ?? "file:./mastra.db",

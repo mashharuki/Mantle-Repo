@@ -2,7 +2,8 @@
 # oven/bun は Debian ベース（glibc）のため DuckDB ネイティブモジュールとの互換性あり
 # ただし next build のワーカープロセスは Node.js で実行させるため
 # NEXT_BUILD_WORKER_FORCE_NODE=1 を設定（LWA 経由の本番起動も node で行う）
-FROM oven/bun:1-slim AS builder
+# バージョンをピン留めして bun.lockb の互換性を保つ
+FROM oven/bun:1.1.4-slim AS builder
 WORKDIR /app
 
 # frontend だけの依存関係をインストール

@@ -25,9 +25,16 @@ type RequiredKey = (typeof REQUIRED_KEYS)[number];
 type OptionalKey = (typeof OPTIONAL_KEYS)[number];
 
 /**
- * CDK スタック
+ * Mantle Agent用のCDK スタック
+ * Lambda Web Adaptor上で動かす
  */
 export class CdkStack extends cdk.Stack {
+  /**
+   * コンストラクター
+   * @param scope 
+   * @param id 
+   * @param props 
+   */
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -94,7 +101,6 @@ export class CdkStack extends cdk.Stack {
 
     // ── 各種パス ──
     const monoRepoRoot = path.join(__dirname, "../../../");
-    const frontendDir = path.join(__dirname, "../../frontend");
 
     // ── CloudWatch Logs グループ ──
     const logGroup = new logs.LogGroup(this, "NextjsFunctionLogGroup", {
@@ -126,8 +132,8 @@ export class CdkStack extends cdk.Stack {
 
     // ── Lambda Function URL（ストリーミング + CORS） ──
     const fnUrl = fn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
-      invokeMode: lambda.InvokeMode.RESPONSE_STREAM,
+      authType: lambda.FunctionUrlAuthType.NONE, // 検証目的なので None
+      invokeMode: lambda.InvokeMode.RESPONSE_STREAM, // レスポンスストリーミング対応
       cors: {
         allowedOrigins: ["*"],
         allowedHeaders: ["content-type", "authorization"],
@@ -135,7 +141,10 @@ export class CdkStack extends cdk.Stack {
       },
     });
 
+    // ========================================================
     // ── Outputs ──
+    // ========================================================
+    
     new cdk.CfnOutput(this, "LambdaFunctionUrl", {
       value: fnUrl.url,
       description: "Lambda Function URL",

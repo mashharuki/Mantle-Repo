@@ -1,0 +1,15 @@
+# CDK パッケージ（デプロイ対象外）
+pkgs/cdk
+
+# ビルドキャッシュ・ローカルDB
+pkgs/frontend/node_modules
+pkgs/frontend/.next
+pkgs/frontend/mastra.db*
+pkgs/frontend/mastra.duckdb*
+pkgs/frontend/docs
+
+# VCS・その他
+.git
+.gitignore
+node_modules
+*.md

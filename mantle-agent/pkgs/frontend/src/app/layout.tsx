@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Space_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const spaceMono = Space_Mono({
+const spaceMono = localFont({
+	src: [
+		{ path: "../fonts/space-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+		{ path: "../fonts/space-mono-latin-700-normal.woff2", weight: "700", style: "normal" },
+	],
 	variable: "--font-space-mono",
-	subsets: ["latin"],
-	weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {

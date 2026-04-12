@@ -1,0 +1,224 @@
+# 主要言語: 日本語
+language: "ja-JP"
+
+early_access: false
+enable_free_tier: true
+
+# ============================================================================
+# レビュー設定
+# ============================================================================
+
+reviews:
+  # 詳細なフィードバックのためにassertiveプロファイルを使用
+  profile: "assertive"
+
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  review_status: true
+  commit_status: true
+
+  # ウォークスルー機能を有効化
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true  # アーキテクチャ図の生成を有効化
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+
+  # ラベル提案を有効化
+  suggested_labels: true
+  labeling_instructions:
+    - label: "bug"
+      instructions: "バグ修正"
+    - label: "feature"
+      instructions: "新機能追加"
+    - label: "refactor"
+      instructions: "リファクタリング"
+    - label: "docs"
+      instructions: "ドキュメント更新"
+    - label: "test"
+      instructions: "テスト追加・修正"
+    - label: "infra"
+      instructions: "インフラ・CDK変更"
+    - label: "security"
+      instructions: "セキュリティ対応"
+    - label: "performance"
+      instructions: "パフォーマンス改善"
+  auto_apply_labels: true
+
+  suggested_reviewers: true
+  poem: false  # プロフェッショナルな開発コンテキスト
+
+  # パスフィルター: プロジェクト構造に基づく
+  path_filters:
+    - "mantle-agent/**"            # Mastraで開発したAI Agent
+    - "hardhat-sample"             # hardhat + Mantleのサンプルプロジェクト 
+    - "README.md"
+    - "AGENTS.md"
+    - "CALUDE.md"
+    - "!node_modules/**"
+    - "!.git/**"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/*.log"
+    - "!**/*.next"
+
+  # パス別レビュー指示
+  path_instructions:
+    - path: "pkgs/mastra-agent/**"
+      instructions: |
+        - Mastra AIエージェントの実装を確認
+        - Amazon Bedrock AgentCore Runtime仕様(PORT 8080, /ping, /invocations)への準拠を検証
+        - SSM Parameter Storeからの設定読み込みロジックを確認
+        - エラーハンドリングとログ出力の適切性を検証
+        - AWS SDK使用時のIAM権限の妥当性を確認
+        - TypeScript型安全性とエラーハンドリングを重視
+
+    - path: "pkgs/mcp/**"
+      instructions: |
+        - Model Context Protocol (MCP)仕様への準拠を確認
+        - Lambda Web Adapterとの統合を検証
+        - x402プロトコル実装の正確性を確認
+        - バンドルサイズとLambda制約(メモリ、タイムアウト)を考慮
+        - エラーハンドリングとレスポンス形式の統一性を検証
+
+    - path: "pkgs/x402server/**"
+      instructions: |
+        - x402支払いプロトコルの実装を確認
+        - コンテンツ配信ロジックの安全性を検証
+        - Honoフレームワークのベストプラクティス準拠
+        - 環境変数の適切な管理を確認
+        - エラーハンドリングとログ出力を検証
+
+    - path: "pkgs/frontend/**"
+      instructions: |
+        - Next.js 15のベストプラクティス準拠
+        - Server ComponentsとClient Componentsの適切な使い分け
+        - AgentCore Runtime APIとの統合を確認
+        - レスポンシブデザインとアクセシビリティを検証
+        - TypeScript型安全性とエラーハンドリング
+        - PWA対応とService Worker実装の確認
+
+    - path: "pkgs/cdk/**"
+      instructions: |
+        - AWS CDKベストプラクティスへの準拠
+        - IAMポリシーの最小権限原則(Principle of Least Privilege)の遵守
+        - VPC、セキュリティグループ設定の安全性を確認
+        - コスト最適化(ARM64、Fargate設定)の妥当性
+        - SSM Parameter Store、ECR、Lambda、ECS Fargateの適切な設定
+        - 環境変数とシークレット管理の安全性を検証
+        - リソース削除ポリシー(RemovalPolicy)の妥当性を確認
+
+    - path: "**/*.md"
+      instructions: |
+        - ドキュメントの正確性と完全性を確認
+        - 日本語の文法と表現の自然さを検証
+        - コードサンプルの実行可能性を確認
+        - アーキテクチャ図の正確性を検証
+
+  abort_on_close: true
+  disable_cache: false
+
+  # 自動レビュー設定
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    ignore_title_keywords:
+      - "wip"
+      - "draft"
+      - "作業中"
+      - "WIP"
+      - "Draft"
+    drafts: false
+
+  # 仕上げ機能
+  finishing_touches:
+    docstrings:
+      enabled: true
+      target_languages:
+        - "typescript"
+        - "javascript"
+
+    unit_tests:
+      enabled: true
+      target_languages:
+        - "typescript"
+        - "javascript"
+
+  # ツール設定
+  tools:
+    # Markdown linting
+    markdownlint:
+      enabled: true
+
+    # TypeScript/JavaScript linting
+    biome:
+      enabled: true
+
+    eslint:
+      enabled: true
+
+    # シェルスクリプト検証
+    shellcheck:
+      enabled: true
+
+    # セキュリティスキャン
+    gitleaks:
+      enabled: true
+
+    # 詳細なコード分析
+    ast-grep:
+      essential_rules: true
+
+    # セキュリティパターン検出
+    semgrep:
+      enabled: true
+
+    # 日本語文法チェック
+    languagetool:
+      enabled: true
+      level: "default"
+      enabled_categories:
+        - "GRAMMAR"
+        - "STYLE"
+      disabled_rules:
+        - "WHITESPACE_RULE"
+
+    # Python (使用していない)
+    ruff:
+      enabled: false
+
+# ============================================================================
+# チャット設定
+# ============================================================================
+
+chat:
+  art: false
+  auto_reply: true
+
+# ============================================================================
+# ナレッジベース
+# ============================================================================
+
+knowledge_base:
+  opt_out: false
+
+  web_search:
+    enabled: true  # AWS、Mastra、x402の最新情報を検索
+
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "AGENTS.md"         # 開発ガイドライン
+      - "README.md"         # プロジェクト概要
+      - ".github/instructions/**"
+
+  learnings:
+    scope: "local"
+
+  issues:
+    scope: "local"
+
+  pull_requests:
+    scope: "local"

@@ -1,8 +1,6 @@
 import { Mastra } from "@mastra/core/mastra";
 import { PinoLogger } from "@mastra/loggers";
 import { LibSQLStore } from "@mastra/libsql";
-import { DuckDBStore } from "@mastra/duckdb";
-import { MastraCompositeStore } from "@mastra/core/storage";
 import {
 	Observability,
 	DefaultExporter,
@@ -13,15 +11,10 @@ import { mantleAgent } from "./agents/mantle-agent";
 
 export const mastra = new Mastra({
 	agents: { mantleAgent },
-	storage: new MastraCompositeStore({
-		id: "composite-storage",
-		default: new LibSQLStore({
-			id: "mastra-storage",
-			url: "file:./mastra.db",
-		}),
-		domains: {
-			observability: await new DuckDBStore().getStore("observability"),
-		},
+	storage: new LibSQLStore({
+		id: "mastra-storage",
+		url: process.env.LIBSQL_URL ?? "file:./mastra.db",
+		authToken: process.env.LIBSQL_AUTH_TOKEN,
 	}),
 	logger: new PinoLogger({
 		name: "Mastra",

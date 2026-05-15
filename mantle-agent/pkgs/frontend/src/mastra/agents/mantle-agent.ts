@@ -58,6 +58,7 @@ This agent has an embedded wallet (configured via AGENT_PRIVATE_KEY) that can:
   - executeAgniSwap uses Agni Finance (Uniswap V3 fork) on Mantle
   - Agni fee tiers: 100 / 500 / 2500 / 10000 (default: 2500 = 0.25%)
   - Testnet (chainId 5003): SwapRouter 0xe38cfa32..., QuoterV2 0x9Da17239...
+  - Testnet known tokens: WMNT 0x67A1f4A9..., MANA 0xF6762aFB45ac0aF7ddC5aA92B885c6ECe57874dc
   - Mainnet (chainId 5000): SwapRouter 0x319B6988..., QuoterV2 0xc4aaDc92...
 
 ## Swap execution rules
@@ -91,7 +92,7 @@ export const mantleAgent = new Agent({
 	id: "mantleAgent",
 	name: "Mantle Network AI Agent",
 	instructions: SYSTEM_PROMPT,
-	model: "google/gemini-3.1-flash-lite-preview",
+	model: "google/gemini-2.5-flash",
 	tools: {
 		getMantleNetworkInfo,
 		getWalletBalance,

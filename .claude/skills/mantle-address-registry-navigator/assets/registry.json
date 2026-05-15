@@ -203,6 +203,30 @@
         "retrieved_at": "2026-03-08T04:00:14Z"
       },
       "notes": "Official Aave v3 Mantle pool registry entry."
+    },
+    {
+      "key": "MANA_TOKEN_TESTNET",
+      "label": "MANA Token (Mantle Sepolia Testnet)",
+      "environment": "testnet",
+      "category": "token",
+      "address": "0xF6762aFB45ac0aF7ddC5aA92B885c6ECe57874dc",
+      "status": "active",
+      "is_official": false,
+      "aliases": [
+        "MANA",
+        "mana_testnet",
+        "mana_sepolia"
+      ],
+      "supports": [
+        "transfer",
+        "approve",
+        "swap"
+      ],
+      "source": {
+        "url": "https://explorer.sepolia.mantle.xyz/token/0xF6762aFB45ac0aF7ddC5aA92B885c6ECe57874dc",
+        "retrieved_at": "2026-05-15T00:00:00Z"
+      },
+      "notes": "MANA ERC-20 token on Mantle Sepolia testnet. Confirmed by user on 2026-05-15."
     }
   ]
 }

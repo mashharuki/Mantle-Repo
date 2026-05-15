@@ -1,12 +1,12 @@
-import { createTool } from "@mastra/core/tools";
-import { parseUnits, formatUnits, erc20Abi } from "viem";
-import { z } from "zod";
 import {
-	getPublicClient,
-	getAgentWalletClient,
 	getAgentAddress,
+	getAgentWalletClient,
 	getExplorerUrl,
+	getPublicClient,
 } from "@/lib/viem-clients";
+import { createTool } from "@mastra/core/tools";
+import { erc20Abi, formatUnits, parseUnits } from "viem";
+import { z } from "zod";
 
 type Network = "mainnet" | "sepolia";
 
@@ -57,8 +57,14 @@ const KNOWN_TOKENS: Record<
 			address: "0x67A1f4A939A477C58C43Ae46f38fF81f3e10F1f3",
 			decimals: 18,
 		},
+		/*
 		WMNT: {
 			address: "0x67A1f4A939A477C58C43Ae46f38fF81f3e10F1f3",
+			decimals: 18,
+		},
+		*/
+		MANA: {
+			address: "0xF6762aFB45ac0aF7ddC5aA92B885c6ECe57874dc",
 			decimals: 18,
 		},
 	},

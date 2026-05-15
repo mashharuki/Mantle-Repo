@@ -57,6 +57,11 @@ const KNOWN_TOKENS: Record<
 		decimals: 18,
 		symbol: "WETH",
 	},
+	MANA: {
+		address: "0xF6762aFB45ac0aF7ddC5aA92B885c6ECe57874dc",
+		decimals: 18,
+		symbol: "MANA",
+	},
 };
 
 function resolveToken(

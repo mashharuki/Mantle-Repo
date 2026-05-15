@@ -58,3 +58,4 @@ pnpm run build
 - [Testnet Agni Finance](https://testnet.agni.finance/swap?chain=mantleTestnet)
 - [DeepWikiによるAgent SKILLの解説](https://deepwiki.com/search/_4f85863f-b448-4e68-9434-d8359422dc11)
 - [DeepWikiによるAgent SKILLの解説2](https://deepwiki.com/search/_c3d846fa-32bd-4117-8d5f-62c82e51d159)
+- [利用可能なトークン一覧](https://token-list.mantle.xyz/mantle.tokenlist.json)

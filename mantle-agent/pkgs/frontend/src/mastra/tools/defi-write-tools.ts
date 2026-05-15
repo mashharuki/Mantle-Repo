@@ -229,20 +229,30 @@ export const approveERC20Token = createTool({
 export const executeAgniSwap = createTool({
 	id: "execute-agni-swap",
 	description:
-		"Execute a token swap on Agni Finance (Uniswap V3 fork) on Mantle Network. Quotes via QuoterV2, approves tokenIn to the SwapRouter, then executes exactInputSingle. Requires AGENT_PRIVATE_KEY to be set.",
+		"Execute a token swap on Agni Finance (Uniswap V3 fork) on Mantle Network. " +
+		"By default, quotes via QuoterV2 first; set amountOutMinimum to skip the quote step entirely (useful on testnet where pools may not exist). " +
+		"Requires AGENT_PRIVATE_KEY to be set.",
 	inputSchema: z.object({
 		tokenIn: z.string().describe("Input token symbol (e.g. WMNT) or address"),
 		tokenOut: z.string().describe("Output token symbol (e.g. USDT) or address"),
 		amountIn: z
 			.string()
 			.describe("Input amount in human-readable units (e.g. '0.01')"),
+		amountOutMinimum: z
+			.string()
+			.optional()
+			.describe(
+				"Minimum output amount in human-readable units (e.g. '0'). " +
+				"If provided, the QuoterV2 quote step is skipped entirely. " +
+				"Use '0' on testnet when no pool exists yet.",
+			),
 		slippageBps: z
 			.number()
 			.int()
 			.min(1)
 			.max(1000)
 			.default(50)
-			.describe("Slippage tolerance in basis points (default: 50 = 0.5%)"),
+			.describe("Slippage tolerance in bps applied to the QuoterV2 quote (ignored when amountOutMinimum is provided)"),
 		feeTier: z
 			.number()
 			.int()
@@ -256,10 +266,12 @@ export const executeAgniSwap = createTool({
 		approveTxHash: z.string().optional(),
 		swapTxHash: z.string(),
 		amountIn: z.string(),
-		amountOut: z.string(),
+		amountOutMinimum: z.string(),
+		quotedAmountOut: z.string().optional(),
 		tokenIn: z.string(),
 		tokenOut: z.string(),
 		network: z.string(),
+		quoteSkipped: z.boolean(),
 		explorerUrls: z.object({
 			approve: z.string().optional(),
 			swap: z.string(),
@@ -281,41 +293,57 @@ export const executeAgniSwap = createTool({
 		const publicClient = getPublicClient(network);
 		const walletClient = getAgentWalletClient(network);
 
-		// Step 1: Quote via QuoterV2
+		// Step 1: Determine amountOutMinimum
 		let amountOutMin: bigint;
-		try {
-			const quoteResult = await publicClient.simulateContract({
-				address: addresses.quoterV2,
-				abi: QUOTER_V2_ABI,
-				functionName: "quoteExactInputSingle",
-				args: [
-					{
-						tokenIn: tokenInInfo.address,
-						tokenOut: tokenOutInfo.address,
-						amountIn: amountInWei,
-						fee: feeTier,
-						sqrtPriceLimitX96: 0n,
-					},
-				],
-			});
-			const amountOut = quoteResult.result[0];
-			amountOutMin = (amountOut * BigInt(10000 - slippageBps)) / 10000n;
-		} catch {
-			// If quote fails (no pool), use 0 as minimum (risky but allows demonstration)
-			amountOutMin = 0n;
+		let quotedAmountOut: string | undefined;
+		let quoteSkipped: boolean;
+
+		if (input.amountOutMinimum !== undefined) {
+			// User-provided minimum — skip QuoterV2 entirely
+			amountOutMin = parseUnits(input.amountOutMinimum, tokenOutInfo.decimals);
+			quoteSkipped = true;
+		} else {
+			// Attempt QuoterV2 quote; fall back to 0 if pool doesn't exist
+			quoteSkipped = false;
+			try {
+				const quoteResult = await publicClient.simulateContract({
+					address: addresses.quoterV2,
+					abi: QUOTER_V2_ABI,
+					functionName: "quoteExactInputSingle",
+					args: [
+						{
+							tokenIn: tokenInInfo.address,
+							tokenOut: tokenOutInfo.address,
+							amountIn: amountInWei,
+							fee: feeTier,
+							sqrtPriceLimitX96: 0n,
+						},
+					],
+				});
+				const rawOut = quoteResult.result[0];
+				amountOutMin = (rawOut * BigInt(10000 - slippageBps)) / 10000n;
+				quotedAmountOut = formatUnits(rawOut, tokenOutInfo.decimals);
+			} catch {
+				// No pool on testnet — proceed with 0 minimum
+				amountOutMin = 0n;
+				quoteSkipped = true;
+			}
 		}
 
-		// Step 2: Approve tokenIn to SwapRouter (for ERC-20 tokens)
+		// Step 2: Approve tokenIn to SwapRouter
 		let approveTxHash: string | undefined;
-		// Check if tokenIn is a native token wrapper or ERC-20
-		const { request: approveRequest } = await publicClient.simulateContract({
-			address: tokenInInfo.address,
-			abi: erc20Abi,
-			functionName: "approve",
-			args: [addresses.swapRouter, amountInWei],
-			account: walletClient.account,
-		});
-		approveTxHash = await walletClient.writeContract(approveRequest);
+		try {
+			const { request: approveRequest } = await publicClient.simulateContract({
+				address: tokenInInfo.address,
+				abi: erc20Abi,
+				functionName: "approve",
+				args: [addresses.swapRouter, amountInWei],
+				account: walletClient.account,
+			});
+			approveTxHash = await walletClient.writeContract(approveRequest);
+		} catch {
+			// Native token or pre-approved — approve not required
+		}
 
 		// Step 3: Execute swap
 		const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
@@ -343,14 +371,14 @@ export const executeAgniSwap = createTool({
 			approveTxHash,
 			swapTxHash,
 			amountIn: input.amountIn,
-			amountOut: formatUnits(amountOutMin, tokenOutInfo.decimals),
+			amountOutMinimum: formatUnits(amountOutMin, tokenOutInfo.decimals),
+			quotedAmountOut,
 			tokenIn: input.tokenIn,
 			tokenOut: input.tokenOut,
 			network,
+			quoteSkipped,
 			explorerUrls: {
-				approve: approveTxHash
-					? getExplorerUrl(approveTxHash, network)
-					: undefined,
+				approve: approveTxHash ? getExplorerUrl(approveTxHash, network) : undefined,
 				swap: getExplorerUrl(swapTxHash, network),
 			},
 		};

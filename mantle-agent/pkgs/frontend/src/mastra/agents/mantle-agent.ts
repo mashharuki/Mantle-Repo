@@ -12,28 +12,28 @@ import {
 	getContractTemplate,
 	validateContractArchitecture,
 } from "../tools/contract-developer-tools";
+import {
+	counterIncrement,
+	counterIncrementBy,
+	counterReset,
+	getCounterState,
+} from "../tools/counter-tools";
 import { queryHistoricalData } from "../tools/data-indexer-tool";
 import { debugRpcError } from "../tools/debugger-tool";
 import {
 	getDeFiVenues,
-	getSwapQuote,
 	getLiquidityPools,
+	getSwapQuote,
 } from "../tools/defi-tools";
 import {
-	sendNativeToken,
 	approveERC20Token,
 	executeAgniSwap,
+	sendNativeToken,
 } from "../tools/defi-write-tools";
 import { getMantleNetworkInfo } from "../tools/network-primer-tool";
-import { getWalletBalance, getTokenAllowances } from "../tools/portfolio-tools";
+import { getTokenAllowances, getWalletBalance } from "../tools/portfolio-tools";
 import { evaluateTransactionRisk } from "../tools/risk-evaluator-tool";
 import { simulateTransaction } from "../tools/tx-simulator-tool";
-import {
-	getCounterState,
-	counterIncrement,
-	counterIncrementBy,
-	counterReset,
-} from "../tools/counter-tools";
 
 const SYSTEM_PROMPT = `You are the Mantle Network AI Agent — a specialized assistant for developers, traders, and power users building on Mantle, an Ethereum L2 network.
 
@@ -91,7 +91,7 @@ export const mantleAgent = new Agent({
 	id: "mantleAgent",
 	name: "Mantle Network AI Agent",
 	instructions: SYSTEM_PROMPT,
-	model: "anthropic/claude-sonnet-4-6",
+	model: "google/gemini-3.1-flash-lite-preview",
 	tools: {
 		getMantleNetworkInfo,
 		getWalletBalance,

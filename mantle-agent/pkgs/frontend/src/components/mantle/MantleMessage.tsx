@@ -51,10 +51,7 @@ export function MantleMessage({
 						{message.parts.map((part, i) => {
 							if (part.type === "text") {
 								return (
-									<MessageResponse
-										key={i}
-										isAnimating={isStreaming}
-									>
+									<MessageResponse key={i} isAnimating={isStreaming}>
 										{part.text}
 									</MessageResponse>
 								);

@@ -1,20 +1,22 @@
 {
-  "name": "mantle-agent",
-  "module": "index.ts",
-  "type": "module",
-  "workspaces": ["pkgs/*"],
-  "scripts": {
-    "cdk": "bun run --filter 'cdk'",
-    "frontend": "bun run --filter 'frontend'",
-    "lint": "bunx biome lint .",
+	"name": "mantle-agent",
+	"module": "index.ts",
+	"type": "module",
+	"workspaces": [
+		"pkgs/*"
+	],
+	"scripts": {
+		"cdk": "bun run --filter 'cdk'",
+		"frontend": "bun run --filter 'frontend'",
+		"lint": "bunx biome lint .",
 		"lint:fix": "bunx biome lint --apply .",
-    "format": "bunx biome format --write ."
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@biomejs/biome": "2.4.11"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  }
+		"format": "bunx biome format --write ."
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@biomejs/biome": "2.4.11"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	}
 }

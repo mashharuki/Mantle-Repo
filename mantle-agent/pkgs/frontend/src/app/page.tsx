@@ -44,7 +44,9 @@ export default function Page() {
 
 	const { messages, sendMessage, stop, status } = useChat({ transport });
 
-	const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
+	const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(
+		null,
+	);
 	const clearPending = useCallback(() => setPendingSuggestion(null), []);
 	const isStreaming = status === "streaming" || status === "submitted";
 
@@ -90,9 +92,7 @@ export default function Page() {
 			/>
 
 			{/* Main area */}
-			<div
-				className="flex min-w-0 flex-1 flex-col overflow-hidden"
-			>
+			<div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 				{/* Top bar */}
 				<MantleTopBar sessionTitle={sessionTitle} status={status} />
 

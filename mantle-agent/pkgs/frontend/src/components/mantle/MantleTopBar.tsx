@@ -1,15 +1,16 @@
 "use client";
 
 import {
-    MANTLE_BLUE,
-    MANTLE_BORDER,
-    MANTLE_GREEN,
-    MANTLE_ORANGE,
-    MANTLE_SIDEBAR_BG,
-    MANTLE_TEXT_MUTED,
-    MANTLE_TEXT_PRIMARY
+	MANTLE_BLUE,
+	MANTLE_BORDER,
+	MANTLE_GREEN,
+	MANTLE_ORANGE,
+	MANTLE_SIDEBAR_BG,
+	MANTLE_TEXT_MUTED,
+	MANTLE_TEXT_PRIMARY,
 } from "@/utils/constants";
 import { ZapIcon } from "lucide-react";
+import { AgentWalletBadge } from "./AgentWalletBadge";
 
 export function MantleTopBar({
 	sessionTitle,
@@ -49,6 +50,9 @@ export function MantleTopBar({
 
 			{/* Badges */}
 			<div className="flex shrink-0 items-center gap-2">
+				{/* Agent wallet badge */}
+				<AgentWalletBadge network="sepolia" />
+
 				{/* Gas badge */}
 				<div
 					className="flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-semibold"

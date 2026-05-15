@@ -1,22 +1,22 @@
 import {
-  MANTLE_BLUE,
-  MANTLE_BORDER,
-  MANTLE_CARD_BG,
-  MANTLE_GREEN,
-  MANTLE_ORANGE,
-  MANTLE_TEXT_MUTED,
-  MANTLE_TEXT_PRIMARY,
-  MANTLE_TEXT_SECONDARY,
-  SUGGESTIONS,
+	MANTLE_BLUE,
+	MANTLE_BORDER,
+	MANTLE_CARD_BG,
+	MANTLE_GREEN,
+	MANTLE_ORANGE,
+	MANTLE_TEXT_MUTED,
+	MANTLE_TEXT_PRIMARY,
+	MANTLE_TEXT_SECONDARY,
+	SUGGESTIONS,
 } from "@/utils/constants";
 import {
-  ArrowLeftRightIcon,
-  BookOpenIcon,
-  CodeIcon,
-  MapPinIcon,
-  ShieldCheckIcon,
-  TerminalIcon,
-  TrendingUpIcon,
+	ArrowLeftRightIcon,
+	BookOpenIcon,
+	CodeIcon,
+	MapPinIcon,
+	ShieldCheckIcon,
+	TerminalIcon,
+	TrendingUpIcon,
 } from "lucide-react";
 
 const SUGGESTION_CARDS = [

@@ -7,7 +7,7 @@ const workspaceBasePath = path.resolve(process.cwd(), ".mastra-workspace");
 // Prefer MASTRA_SKILLS_DIR env var; fall back to repo-relative path
 const defaultSkillsPath = path.resolve(
 	process.cwd(),
-	"../../../.claude/skills",
+	"src/mastra/skills",
 );
 const configuredSkillsPath = process.env.MASTRA_SKILLS_DIR
 	? path.resolve(process.env.MASTRA_SKILLS_DIR)

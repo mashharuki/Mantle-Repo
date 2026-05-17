@@ -34,6 +34,7 @@ if (skills.length === 0) {
 export const mantleWorkspace = new Workspace({
 	filesystem: new LocalFilesystem({
 		basePath: workspaceBasePath,
+		allowedPaths: skills,
 	}),
 	skills,
 });

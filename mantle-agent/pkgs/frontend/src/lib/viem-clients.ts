@@ -11,11 +11,13 @@ function getRpcUrl(network: Network): string {
 	return process.env.MANTLE_RPC_MAINNET ?? "https://rpc.mantle.xyz";
 }
 
+const RPC_TIMEOUT_MS = 30_000;
+
 export function getPublicClient(network: Network = "mainnet") {
 	const chain = network === "sepolia" ? mantleSepoliaTestnet : mantle;
 	return createPublicClient({
 		chain,
-		transport: http(getRpcUrl(network)),
+		transport: http(getRpcUrl(network), { timeout: RPC_TIMEOUT_MS }),
 	});
 }
 
@@ -30,7 +32,7 @@ export function getAgentWalletClient(network: Network = "mainnet") {
 	return createWalletClient({
 		account,
 		chain,
-		transport: http(getRpcUrl(network)),
+		transport: http(getRpcUrl(network), { timeout: RPC_TIMEOUT_MS }),
 	});
 }
 

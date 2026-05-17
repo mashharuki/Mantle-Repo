@@ -1,34 +1,34 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import {
-	resolveContractAddress,
-	validateAddress,
+    resolveContractAddress,
+    validateAddress,
 } from "../tools/address-registry-tools";
 import {
-	getDeploymentChecklist,
-	prepareDeploymentPackage,
+    getDeploymentChecklist,
+    prepareDeploymentPackage,
 } from "../tools/contract-deployer-tools";
 import {
-	getContractTemplate,
-	validateContractArchitecture,
+    getContractTemplate,
+    validateContractArchitecture,
 } from "../tools/contract-developer-tools";
 import {
-	counterIncrement,
-	counterIncrementBy,
-	counterReset,
-	getCounterState,
+    counterIncrement,
+    counterIncrementBy,
+    counterReset,
+    getCounterState,
 } from "../tools/counter-tools";
 import { queryHistoricalData } from "../tools/data-indexer-tool";
 import { debugRpcError } from "../tools/debugger-tool";
 import {
-	getDeFiVenues,
-	getLiquidityPools,
-	getSwapQuote,
+    getDeFiVenues,
+    getLiquidityPools,
+    getSwapQuote,
 } from "../tools/defi-tools";
 import {
-	approveERC20Token,
-	executeAgniSwap,
-	sendNativeToken,
+    approveERC20Token,
+    executeAgniSwap,
+    sendNativeToken,
 } from "../tools/defi-write-tools";
 import { getMantleNetworkInfo } from "../tools/network-primer-tool";
 import { getTokenAllowances, getWalletBalance } from "../tools/portfolio-tools";
@@ -92,7 +92,7 @@ export const mantleAgent = new Agent({
 	id: "mantleAgent",
 	name: "Mantle Network AI Agent",
 	instructions: SYSTEM_PROMPT,
-	model: "google/gemini-2.5-flash",
+	model: "google/gemini-2.0-flash",
 	tools: {
 		getMantleNetworkInfo,
 		getWalletBalance,

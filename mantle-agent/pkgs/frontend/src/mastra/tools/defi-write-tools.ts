@@ -53,16 +53,16 @@ const KNOWN_TOKENS: Record<
 		},
 	},
 	sepolia: {
+		/*
 		MNT: {
 			address: "0x67A1f4A939A477C58C43Ae46f38fF81f3e10F1f3",
 			decimals: 18,
 		},
-		/*
+		*/
 		WMNT: {
-			address: "0x67A1f4A939A477C58C43Ae46f38fF81f3e10F1f3",
+			address: "0x67A1f4A939b477A6b7c5BF94D97E45dE87E608eF",
 			decimals: 18,
 		},
-		*/
 		MANA: {
 			address: "0xF6762aFB45ac0aF7ddC5aA92B885c6ECe57874dc",
 			decimals: 18,
@@ -347,6 +347,8 @@ export const executeAgniSwap = createTool({
 				account: walletClient.account,
 			});
 			approveTxHash = await walletClient.writeContract(approveRequest);
+			// Wait for approval to be mined before executing the swap
+			await publicClient.waitForTransactionReceipt({ hash: approveTxHash as `0x${string}` });
 		} catch {
 			// Native token or pre-approved — approve not required
 		}

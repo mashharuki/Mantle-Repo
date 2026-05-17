@@ -31,7 +31,7 @@ import {
     sendNativeToken,
 } from "../tools/defi-write-tools";
 import { getMantleNetworkInfo } from "../tools/network-primer-tool";
-import { getTokenAllowances, getWalletBalance } from "../tools/portfolio-tools";
+import { getMntWmntBalances, getTokenAllowances, getWalletBalance } from "../tools/portfolio-tools";
 import { evaluateTransactionRisk } from "../tools/risk-evaluator-tool";
 import { simulateTransaction } from "../tools/tx-simulator-tool";
 
@@ -96,6 +96,7 @@ export const mantleAgent = new Agent({
 	tools: {
 		getMantleNetworkInfo,
 		getWalletBalance,
+		getMntWmntBalances,
 		getTokenAllowances,
 		resolveContractAddress,
 		validateAddress,

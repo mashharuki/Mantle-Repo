@@ -597,6 +597,52 @@ Mastra + AWS で構築する方法を実演
 
 ---
 
+## 4つの専門スキルが戦略を担うノンカストディアル型DeFiエージェント
+
+<div class="columns" style="margin-top: 10px;">
+<div>
+
+### 🎭 4つのプリセット戦略
+
+<div class="card accent" style="margin-bottom: 7px;">
+🛡️ <strong>SteadyClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 低リスク</span><br>
+<span style="font-size:0.8em;color:#94A3B8;">安定したUSD利回り。ステーブルコイン中心の運用</span>
+</div>
+<div class="card blue" style="margin-bottom: 7px;">
+📈 <strong>TradFiClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 低リスク</span><br>
+<span style="font-size:0.8em;color:#94A3B8;">オンチェーンでRWAや株式トークンへ投資</span>
+</div>
+<div class="card warn" style="margin-bottom: 7px;">
+🎯 <strong>SniperClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 中リスク</span><br>
+<span style="font-size:0.8em;color:#94A3B8;">DCA（定期積立）で暗号資産を自動購入</span>
+</div>
+<div class="card danger">
+🔴 <strong>CopyClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 高リスク</span><br>
+<span style="font-size:0.8em;color:#94A3B8;">トップトレーダーの戦略をリアルタイムコピー</span>
+</div>
+
+</div>
+<div>
+
+### ⚙️ 動作の流れ
+
+<div class="steps" style="font-size:0.88em;">
+<div class="step"><div>Telegramでメッセージを送信<br><span style="font-size:0.82em;color:#94A3B8;">"USDCの利回りを増やして" など自然言語でOK</span></div></div>
+<div class="step"><div>AIが意図を解釈し適切なスキルを選択</div></div>
+<div class="step"><div>Privyウォレットが自動署名<br><span style="font-size:0.82em;color:#94A3B8;">秘密鍵はRealClawに渡らないノンカストディアル設計</span></div></div>
+<div class="step"><div>スキルがMantle上で自動実行<br><span style="font-size:0.82em;color:#94A3B8;">Agni / Merchant Moe / Fluxion に接続</span></div></div>
+</div>
+
+<div class="highlight" style="margin-top: 10px; font-size:0.85em;">
+🆓 ベータ版: 2,000クレジット（$20相当）無料付与<br>
+⏱️ セットアップ10分以内 ｜ Telegram + USDCだけで開始
+</div>
+
+</div>
+</div>
+
+---
+
 <!-- _class: section -->
 
 ## 01 — オンチェーンAI Agentに<br>必要な構成要素

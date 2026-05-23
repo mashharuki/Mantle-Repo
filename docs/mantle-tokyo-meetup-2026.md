@@ -146,6 +146,8 @@ style: |
     color: var(--text-primary);
   }
 
+  .tbl-role { color: #67E8C9 !important; }
+
   tr:nth-child(even) td { background: rgba(0,201,140,0.04); }
 
   /* ── Blockquote ── */
@@ -1013,25 +1015,33 @@ Mantle上で動くエージェントのアーキテクチャ
 
 ### 🎨 フロントエンド
 <div class="card accent">
-
-| ライブラリ | 役割 |
-|---|---|
-| <strong>Next.js 16</strong> | App Router / SSR |
-| <strong>Tailwind CSS v4</strong> | スタイリング |
-| <strong>shadcn/ui</strong> | UIコンポーネント |
-| <strong>AI Elements</strong> | Chatインターフェース |
-
+<table style="width:100%; border-collapse:collapse; font-size:0.88em;">
+<thead><tr>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">ライブラリ</th>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">役割</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>Next.js 16</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">App Router / SSR</td></tr>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>Tailwind CSS v4</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">スタイリング</td></tr>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>shadcn/ui</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">UIコンポーネント</td></tr>
+<tr><td style="padding:5px 10px;"><strong>AI Elements</strong></td><td class="tbl-role" style="padding:5px 10px; color:#67E8C9;">Chatインターフェース</td></tr>
+</tbody>
+</table>
 </div>
 
 ### 🤖 AIフレームワーク
 <div class="card warn" style="margin-top: 8px;">
-
-| ライブラリ | 役割 |
-|---|---|
-| <strong>Mastra</strong> | Agent Orchestrator |
-| <strong>AI SDK v6</strong> | LLMストリーミング |
-| <strong>@mastra/memory</strong> | 会話履歴管理 |
-
+<table style="width:100%; border-collapse:collapse; font-size:0.88em;">
+<thead><tr>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">ライブラリ</th>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">役割</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>Mastra</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">Agent Orchestrator</td></tr>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>AI SDK v6</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">LLMストリーミング</td></tr>
+<tr><td style="padding:5px 10px;"><strong>@mastra/memory</strong></td><td class="tbl-role" style="padding:5px 10px; color:#67E8C9;">会話履歴管理</td></tr>
+</tbody>
+</table>
 </div>
 
 </div>
@@ -1039,25 +1049,33 @@ Mantle上で動くエージェントのアーキテクチャ
 
 ### ⛓️ ブロックチェーン
 <div class="card blue">
-
-| ライブラリ | 役割 |
-|---|---|
-| <strong>viem</strong> | EVM型チェーン接続 |
-| <strong>Mantle RPC</strong> | L2ノードアクセス |
-| <strong>Tenderly API</strong> | TX シミュレーション |
-
+<table style="width:100%; border-collapse:collapse; font-size:0.88em;">
+<thead><tr>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">ライブラリ</th>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">役割</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>viem</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">EVM型チェーン接続</td></tr>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>Mantle RPC</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">L2ノードアクセス</td></tr>
+<tr><td style="padding:5px 10px;"><strong>Tenderly API</strong></td><td class="tbl-role" style="padding:5px 10px; color:#67E8C9;">TX シミュレーション</td></tr>
+</tbody>
+</table>
 </div>
 
 ### ☁️ インフラ
 <div class="card accent" style="margin-top: 8px;">
-
-| ライブラリ | 役割 |
-|---|---|
-| <strong>AWS CDK</strong> | IaC（TypeScript） |
-| <strong>AWS Lambda</strong> | サーバーレス実行 |
-| <strong>LibSQL</strong> | Agent Memory DB |
-| <strong>Biome</strong> | コード品質 |
-
+<table style="width:100%; border-collapse:collapse; font-size:0.88em;">
+<thead><tr>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">ライブラリ</th>
+<th style="color:#00C98C; padding:6px 10px; border-bottom:1px solid #1E3A5F; text-align:left;">役割</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>AWS CDK</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">IaC（TypeScript）</td></tr>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>AWS Lambda</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">サーバーレス実行</td></tr>
+<tr><td style="padding:5px 10px; border-bottom:1px solid #1E2D4A;"><strong>LibSQL</strong></td><td class="tbl-role" style="padding:5px 10px; border-bottom:1px solid #1E2D4A; color:#67E8C9;">Agent Memory DB</td></tr>
+<tr><td style="padding:5px 10px;"><strong>Biome</strong></td><td class="tbl-role" style="padding:5px 10px; color:#67E8C9;">コード品質</td></tr>
+</tbody>
+</table>
 </div>
 
 </div>

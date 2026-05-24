@@ -472,7 +472,7 @@ style: |
 
 <!-- _class: title -->
 
-# Mantle上でのオンチェーンAI Agent 開発
+# 爆速！Mantle上での<br/>オンチェーンAI Agent 開発
 
 2026年6月3日 ｜ AI Meets Crypto — Mantle Tokyo Meetup
 <strong>Haruki</strong> — AWS Community Builder (AI Engineering) / Web3 Engineer
@@ -485,9 +485,8 @@ style: |
 
 ## アジェンダ
 
-<div class="columns" style="margin-top:8px;">
+<div class="" style="margin-top:8px;">
 <div>
-
 <div class="steps">
 <div class="step">プロローグ: RealClaw × Mantle とは</div>
 <div class="step">オンチェーンAI Agentに必要な構成要素</div>
@@ -497,100 +496,66 @@ style: |
 <div class="step">実装した機能一覧 / 処理の流れ</div>
 <div class="step">まとめ — ハッカソンへの活かし方</div>
 </div>
-
-</div>
-<div>
-
-<div class="card accent" style="margin-top: 8px;">
-💡 <strong>Today's Goal</strong>
-
-MantleL2上でオンチェーンAI Agentを<br>
-<strong>イマスグ自分で作れる</strong>ようになる
-</div>
-
-<div class="card warn" style="margin-top: 10px;">
-🚀 <strong>Mantle Turing Test Hackathon 2026</strong><br>
-<span style="font-size:0.82em;">賞金総額 $100K | 締切 6/15 | 全オンライン</span>
-</div>
-
-<div class="highlight" style="margin-top: 10px; font-size: 0.85em;">
-資料: <strong>github.com/harukitosa/mantle-agent</strong>
-</div>
-
-</div>
 </div>
 
 ---
 
-## RealClaw × Mantle — AI Trading Agentプラットフォーム
+## RealClaw × Mantle — AI Trading Agent
 
 <div class="columns" style="margin-top: 10px;">
 <div>
 
 ### RealClaw とは
 
-- <strong>Byreal が Mantle 上に構築</strong>したAI Agent取引プラットフォーム
-- AIエージェントがオンチェーンで自律的に<strong>DeFi戦略を実行</strong>
-- すべての意思決定が<strong>Mantleチェーン上に永続記録</strong>される
-- Mantle Turing Test Hackathon <strong>Phase 1 (ClawHack)</strong> の舞台
+- <strong>Byreal が Mantle 上に構築</strong>したAI Agent
+  - OpenClawベース
+- AIエージェントが自律的に<strong>DeFi戦略を実行</strong>
+- すべての意思決定が<strong>Mantleチェーン上に記録</strong>される
+- Mantle Turing Test Hackathon <br/><strong>Phase 1 (ClawHack)</strong> のテーマでもあった
+</div>
+
+<div>
 
 ### 評価指標
 - 取引量（Trading Volume）
 - 投資収益率（ROI）
 
 </div>
+
+---
+
+## 4つの専門スキルが戦略を担うノンカストディアル型DeFiエージェント
+
+<div class="" style="margin-top: 10px;">
 <div>
 
-<div class="card accent">
+### 🎭 4つのプリセット戦略
 
-### 🏆 Turing Test Hackathon 2026
-<strong>Phase 1: ClawHack</strong> — $20,000
-<span style="font-size:0.82em;">AI AgentがMantleのDeFiエコシステム（Merchant Moe / Agni / Fluxion）で戦略実行</span>
+<div class="card accent" style="margin-bottom: 7px;">
+🛡️ <strong>SteadyClaw</strong> <span style="font-size:0.78em;color:#94A3B8;"></span><br>
+<span style="font-size:0.8em;color:#94A3B8;">安定したUSD利回り。ステーブルコイン中心の運用</span>
+</div>
+<div class="card blue" style="margin-bottom: 7px;">
+📈 <strong>TradFiClaw</strong> <span style="font-size:0.78em;color:#94A3B8;"></span><br>
+<span style="font-size:0.8em;color:#94A3B8;">オンチェーンでRWAや株式トークンへ投資</span>
+</div>
+<div class="card warn" style="margin-bottom: 7px;">
+🎯 <strong>SniperClaw</strong> <span style="font-size:0.78em;color:#94A3B8;"></span><br>
+<span style="font-size:0.8em;color:#94A3B8;">DCA（定期積立）で暗号資産を自動購入</span>
+</div>
+<div class="card danger">
+🔴 <strong>CopyClaw</strong> <span style="font-size:0.78em;color:#94A3B8;"></span><br>
+<span style="font-size:0.8em;color:#94A3B8;">トップトレーダーの戦略をリアルタイムコピー</span>
+</div>
 
 </div>
 
-<div class="card warn" style="margin-top: 10px;">
-
-### 🎯 今日のデモの位置づけ
-RealClawの<strong>基盤となるAI Agentインフラ</strong>を
-Mastra + AWS で構築する方法を実演
-
-</div>
-
-<div class="highlight" style="margin-top: 10px; font-size:0.85em;">
-⛓️ Mantle L2: Chain ID 5000 ｜ Gas Token: <strong>MNT</strong>
-</div>
-
-</div>
 </div>
 
 ---
 
 ## 4つの専門スキルが戦略を担うノンカストディアル型DeFiエージェント
 
-<div class="columns" style="margin-top: 10px;">
-<div>
-
-### 🎭 4つのプリセット戦略
-
-<div class="card accent" style="margin-bottom: 7px;">
-🛡️ <strong>SteadyClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 低リスク</span><br>
-<span style="font-size:0.8em;color:#94A3B8;">安定したUSD利回り。ステーブルコイン中心の運用</span>
-</div>
-<div class="card blue" style="margin-bottom: 7px;">
-📈 <strong>TradFiClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 低リスク</span><br>
-<span style="font-size:0.8em;color:#94A3B8;">オンチェーンでRWAや株式トークンへ投資</span>
-</div>
-<div class="card warn" style="margin-bottom: 7px;">
-🎯 <strong>SniperClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 中リスク</span><br>
-<span style="font-size:0.8em;color:#94A3B8;">DCA（定期積立）で暗号資産を自動購入</span>
-</div>
-<div class="card danger">
-🔴 <strong>CopyClaw</strong> <span style="font-size:0.78em;color:#94A3B8;">— 高リスク</span><br>
-<span style="font-size:0.8em;color:#94A3B8;">トップトレーダーの戦略をリアルタイムコピー</span>
-</div>
-
-</div>
 <div>
 
 ### ⚙️ 動作の流れ
@@ -608,15 +573,12 @@ Mastra + AWS で構築する方法を実演
 </div>
 
 </div>
-</div>
 
 ---
 
 <!-- _class: section -->
 
-## 01 — オンチェーンAI Agentに<br>必要な構成要素
-
-オンチェーンAIエージェントを構成する8つの要素
+## 01 — オンチェーンAI Agentに必要な構成要素
 
 ---
 

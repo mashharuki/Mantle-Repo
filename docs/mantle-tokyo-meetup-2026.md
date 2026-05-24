@@ -582,63 +582,62 @@ style: |
 
 ---
 
-## オンチェーンAI Agentは8つのコンポーネントで構成される
+## オンチェーンAI Agentは9つのコンポーネントで構成される
 
 <div class="columns col-3" style="margin-top: 6px; gap: 14px;">
 <div class="card accent">
 
 ### 🧠 LLM
 <strong>推論エンジン</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">GPT-4o / Gemini / Claude</span>
 
 </div>
 <div class="card accent">
 
 ### 🔧 Tool Calling
 <strong>外部アクション</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">Function / MCP Tools</span>
 
 </div>
 <div class="card accent">
 
 ### 💾 Memory
 <strong>記憶・文脈保持</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">Short-term / Long-term</span>
 
 </div>
 <div class="card warn">
 
 ### 🔑 Wallet / Signer
-<strong>秘密鍵・署名</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">EOA / AA Wallet</span>
+<strong>秘密鍵管理</strong><br>
 
 </div>
 <div class="card warn">
 
 ### ⛓️ Chain Connector
 <strong>ブロックチェーン接続</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">viem / ethers.js / RPC</span>
 
 </div>
 <div class="card warn">
 
 ### 🛡️ Risk Evaluator
 <strong>安全性チェック</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">Slippage / Allowance</span>
 
 </div>
 <div class="card blue">
 
 ### 🎯 Agent Framework
 <strong>オーケストレーション</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">Mastra / LangGraph</span>
 
 </div>
 <div class="card blue">
 
 ### 🌐 API / UI Layer
 <strong>ユーザーインターフェース</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">Next.js / REST / SDK</span>
+
+</div>
+
+<div class="card blue">
+
+### ♻️ LLM Ops
+<strong>Langfuse等による性能評価</strong><br>
 
 </div>
 </div>

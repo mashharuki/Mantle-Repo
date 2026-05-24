@@ -644,28 +644,27 @@ style: |
 
 ---
 
-## 「読み取り専用原則」が安全なオンチェーンAgentの基盤
+## 安全なオンチェーンAgentを構築するには？
 
 <div class="columns" style="margin-top: 10px;">
 <div>
 
-### なぜ読み取り専用が重要か
+### なぜ基本「読み取り専用」が重要か
 
 - <strong>秘密鍵をAIに持たせると危険</strong>
   - LLMハルシネーションによる誤操作
   - プロンプトインジェクション攻撃
   - 不可逆なオンチェーン操作
 
-- <strong>外部署名者へのハンドオフ</strong>
+- <strong>外部署名者へのハンドオフが良い</strong>
   - AIは「提案」、人間が「承認」
-  - *What You See Is What You Sign (WYSIWYS)*
 
 </div>
 <div>
 
 <div class="card danger" style="margin-bottom: 10px;">
 
-### ❌ やってはいけないこと
+### 非推奨
 AIエージェントにPRIVATE KEYを<br>直接渡して自動実行させる
 
 </div>
@@ -681,20 +680,18 @@ AIエージェントにPRIVATE KEYを<br>直接渡して自動実行させる
 </div>
 
 <div class="highlight">
-🔒 AI Agentの設計原則：「提案はAI、実行は人間（または検証済み自動署名）」
+🔒 AI Agentの設計原則：「提案はAI、承認は人間（または検証済み自動署名）」
 </div>
 
 ---
 
 <!-- _class: section -->
 
-## 02 — オンチェーンAI Agent<br>のシステム構成例
-
-Mantle上で動くエージェントのアーキテクチャ
+## 02 — オンチェーンAI Agentのシステム構成例
 
 ---
 
-## Next.js + Mastra + AWS Lambda でMantleに繋がるAgentを構築
+## Next.js + Mastra + AWS Lambda でMantleに繋がるAgentを構築する例
 
 <div style="margin-top: 10px;">
 <div class="columns col-3" style="gap: 12px; align-items: center;">
@@ -734,7 +731,7 @@ Mantle上で動くエージェントのアーキテクチャ
 
 ## AgentはReAct パターンで「考える → 行動する → 観察する」を繰り返す
 
-<div class="columns" style="margin-top: 8px;">
+<div class="" style="margin-top: 8px;">
 <div>
 
 <div class="steps">
@@ -746,38 +743,38 @@ Mantle上で動くエージェントのアーキテクチャ
 </div>
 
 </div>
+
+</div>
+
+---
+
+## AgentはReAct パターンで「考える → 行動する → 観察する」を繰り返す
+
 <div>
 
 <div class="card accent">
-### 読み取り系ツール
+<strong>読み取り系ツール</strong><br/>
 `getWalletBalance` / `getSwapQuote`<br>
 `resolveContractAddress` / `debugRpcError`<br>
 `queryHistoricalData`
 </div>
 
+<br/>
+
 <div class="card warn" style="margin-top: 10px;">
-### 検証・シミュレーション系
+<strong>検証・シミュレーション系</strong><br/>
 `evaluateTransactionRisk`<br>
 `simulateTransaction`<br>
 `validateContractArchitecture`
 </div>
 
-<div class="card success" style="margin-top: 10px;">
-### 書き込み系 (注意)
-外部署名者へのパッケージ生成のみ<br>
-`prepareDeploymentPackage`
-</div>
-
-</div>
 </div>
 
 ---
 
 <!-- _class: section -->
 
-## 03 — AWSを使ったAI Agent<br>実装のサービス選定
-
-クラウドネイティブなAgentインフラの設計
+## 03 — AI Agentを実装する際のAWSのサービス選定
 
 ---
 
@@ -790,12 +787,12 @@ Mantle上で動くエージェントのアーキテクチャ
 
 <div class="card blue">
 <strong>AWS Lambda</strong> (ARM64)<br>
-<span style="font-size:0.8em;color:#94A3B8;">サーバーレス・コスト最小化<br>Dockerイメージで依存関係を完全封結</span>
+<span style="font-size:0.8em;color:#94A3B8;">サーバーレス・コスト最小化</span>
 </div>
 
 <div class="card blue" style="margin-top: 8px;">
-<strong>Lambda Function URL</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">API GW不要でストリーミング対応<br>レスポンスコスト削減</span>
+<strong>Bedrock AgentCore</strong><br>
+<span style="font-size:0.8em;color:#94A3B8;">AI Agent向けの最適な実行環境<br/>x402関連の<strong>Payments</strong>も追加</span>
 </div>
 </div>
 
@@ -803,8 +800,8 @@ Mantle上で動くエージェントのアーキテクチャ
 <div class="arch-box green" style="margin-bottom: 8px; font-size:0.88em;">🔒 機密管理 / 観測</div>
 
 <div class="card accent">
-<strong>SSM Parameter Store</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">APIキーを暗号化管理<br>CDKで自動登録・ローテーション</span>
+<strong>Secret Manger</strong><br>
+<span style="font-size:0.8em;color:#94A3B8;">APIキー等を暗号化管理<br>自動ローテーション</span>
 </div>
 
 <div class="card accent" style="margin-top: 8px;">
@@ -818,7 +815,7 @@ Mantle上で動くエージェントのアーキテクチャ
 
 <div class="card warn">
 <strong>Amazon Bedrock</strong><br>
-<span style="font-size:0.8em;color:#94A3B8;">マネージドLLM呼び出し<br>Claude 3.5 / Nova Pro対応</span>
+<span style="font-size:0.8em;color:#94A3B8;">マネージドLLM呼び出し<br>Claude / Nova Pro対応</span>
 </div>
 
 <div class="card warn" style="margin-top: 8px;">
@@ -860,79 +857,27 @@ Mantle上で動くエージェントのアーキテクチャ
 
 <div class="card warn">
 <strong>Amazon Bedrock</strong><br>
-<span style="font-size:0.82em;">LLMをAWS管理に移行。Claude 3.5 / Nova ProをBedrock経由で呼び出し。プロバイダーロック回避</span>
+<span style="font-size:0.82em;">LLMをAWS管理に移行。Claude / Nova ProをBedrock経由で呼び出し。プロバイダーロック回避</span>
 </div>
 
 <div class="card warn" style="margin-top: 8px;">
 <strong>DynamoDB + DAX</strong><br>
-<span style="font-size:0.82em;">Agent Memoryの永続化。Thread IDベースでスケール。LibSQLから移行で高可用性</span>
+<span style="font-size:0.82em;">Agent Memoryの永続化。Thread IDベースで<br/>スケール。LibSQLから移行で高可用性</span>
 </div>
 
 <div class="card warn" style="margin-top: 8px;">
 <strong>EventBridge + SQS</strong><br>
-<span style="font-size:0.82em;">自律型エージェントの非同期タスクキュー。オンチェーン監視→自動アクション</span>
+<span style="font-size:0.82em;">自律型エージェントの非同期タスクキュー。<br/>オンチェーン監視→自動アクション</span>
 </div>
 
 </div>
-</div>
-
----
-
-## 用途に応じて3つのAWSアーキテクチャパターンを使い分ける
-
-<div style="margin-top: 8px;" class="columns col-3">
-<div>
-
-<div class="card blue" style="text-align:center;">
-
-### 💬 Chatbot型
-<strong>Lambda + Bedrock</strong><br>
-同期応答、会話メモリ
-<hr style="border-color:#1E2D4A; margin: 8px 0;">
-<span style="font-size:0.78em;color:#94A3B8;">今回の構成に近い<br>コスト最小・管理不要</span>
-
-</div>
-
-</div>
-<div>
-
-<div class="card accent" style="text-align:center;">
-
-### 🤖 自律型Agent
-<strong>ECS + SQS + DynamoDB</strong><br>
-非同期・長時間タスク
-<hr style="border-color:#1E2D4A; margin: 8px 0;">
-<span style="font-size:0.78em;color:#94A3B8;">オンチェーン監視・<br>自動取引に最適</span>
-
-</div>
-
-</div>
-<div>
-
-<div class="card warn" style="text-align:center;">
-
-### 🌐 Multi-Agent
-<strong>Step Functions + Lambda</strong><br>
-オーケストレーション
-<hr style="border-color:#1E2D4A; margin: 8px 0;">
-<span style="font-size:0.78em;color:#94A3B8;">複雑なワークフロー<br>分散協調処理</span>
-
-</div>
-
-</div>
-</div>
-
-<div class="highlight" style="margin-top: 14px;">
-🏗️ 始めるなら：Lambda + Bedrock + DynamoDB が最速・最小コストのスタック
 </div>
 
 ---
 
 <!-- _class: section -->
 
-## 04 — 実装紹介<br>RealClaw × Mantle AI Agent
-
-実際に作ったものをみせます
+## 04 — 実装例 AWS × Mantle AI Agent
 
 ---
 
@@ -991,6 +936,7 @@ Mantle上で動くエージェントのアーキテクチャ
 </div>
 
 ### ☁️ インフラ
+
 <div class="card accent" style="margin-top: 8px;">
 <table style="width:100%; border-collapse:collapse; font-size:0.88em;">
 <thead><tr>
@@ -1011,7 +957,7 @@ Mantle上で動くエージェントのアーキテクチャ
 
 ---
 
-## Mantle特化の10スキルを実装 — DeFiからデプロイ支援まで全カバー
+## Mantle特化の10スキルを利用 — DeFiからデプロイ支援まで全カバー
 
 <div class="columns col-3" style="margin-top: 8px; gap: 12px;">
 <div class="card accent">
@@ -1050,7 +996,15 @@ Agni Finance スワップ見積<br>流動性プール情報
 Tenderly API優先<br>WYSIWYS サマリー生成
 
 </div>
-<div class="card blue">
+
+</div>
+
+---
+
+## Mantle特化の10スキルを利用 — DeFiからデプロイ支援まで全カバー
+
+<div class="columns col-3" style="margin-top: 8px; gap: 12px;">
+<div class="card accent">
 
 ### 🔍 RPCデバッガー
 rate limit / revert / nonce<br>エラーパターン診断
@@ -1088,7 +1042,7 @@ ERC-20/721/1155テンプレ<br>アーキテクチャ検証
 <div class="steps">
 <div class="step">
 <div><strong>ユーザー入力</strong><br>
-<span style="font-size:0.82em;color:#94A3B8;">"MNTをUSDTに100スワップしたい"</span>
+<span style="font-size:0.82em;color:#94A3B8;">"WMNTをMANAに100スワップしたい"</span>
 </div>
 </div>
 <div class="step">
@@ -1098,12 +1052,12 @@ ERC-20/721/1155テンプレ<br>アーキテクチャ検証
 </div>
 <div class="step">
 <div><strong>リスク評価 → evaluateTransactionRisk</strong><br>
-<span style="font-size:0.82em;color:#94A3B8;">スリッページ・アドレス安全性・ガス・デッドラインを6項目チェック</span>
+<span style="font-size:0.82em;color:#94A3B8;">スリッページ・アドレス安全性・ガス・<br/>デッドラインを6項目チェック</span>
 </div>
 </div>
 <div class="step">
 <div><strong>スワップ見積 → getSwapQuote</strong><br>
-<span style="font-size:0.82em;color:#94A3B8;">Agni QuoterV2 に eth_call → 出力量・価格影響を取得</span>
+<span style="font-size:0.82em;color:#94A3B8;">Agni QuoterV2 に eth_call → <br/>出力量・価格影響を取得</span>
 </div>
 </div>
 <div class="step">
@@ -1113,7 +1067,7 @@ ERC-20/721/1155テンプレ<br>アーキテクチャ検証
 </div>
 <div class="step">
 <div><strong>外部ウォレットへハンドオフ</strong><br>
-<span style="font-size:0.82em;color:#94A3B8;">未署名パッケージを提示 → MetaMask等で署名・送信</span>
+<span style="font-size:0.82em;color:#94A3B8;">未署名パッケージを提示 → <br/>MetaMask等で署名・送信</span>
 </div>
 </div>
 </div>
@@ -1158,55 +1112,15 @@ export const getSwapQuote = createTool({
 
 ## 05 — まとめ
 
-オンチェーンAI Agent開発のポイント
-
 ---
 
-## ビルダーに必要な3つのエッセンスに絞り込める
+## ✅ 今日のキーポイント
 
-<div class="columns col-3" style="margin-top: 16px;">
-<div style="text-align:center; padding: 16px 8px;">
-<span class="number">10</span>
-<p style="color: var(--accent); font-weight:700; margin: 6px 0 4px;">Onchain Tools</p>
-<p style="font-size:0.78em; color:#94A3B8;">DeFiからデプロイまで<br>全カバーのツールセット</p>
-</div>
-<div style="text-align:center; padding: 16px 8px;">
-<span class="number warm">100%</span>
-<p style="color: var(--accent-warm); font-weight:700; margin: 6px 0 4px;">Read-Only Safe</p>
-<p style="font-size:0.78em; color:#94A3B8;">対応全ツールが<br>秘密鍵不要設計</p>
-</div>
-<div style="text-align:center; padding: 16px 8px;">
-<span class="number blue">$0</span>
-<p style="color: var(--accent-blue); font-weight:700; margin: 6px 0 4px;">Fixed Server Cost</p>
-<p style="font-size:0.78em; color:#94A3B8;">AWS Lambdaによる<br>完全サーバーレス実現</p>
-</div>
-</div>
-
-<div class="columns" style="margin-top: 16px;">
-<div>
-
-### ✅ 今日のキーポイント
-
-- <strong>読み取り専用原則</strong>を守るAI設計がベストプラクティス
-- <strong>Mastra × AI SDK</strong>でTypeScriptのAgent構築が即座に可能
+- <strong>読み取り専用原則</strong>に沿ったAI設計が良い！
+- <strong>Mastra × AI SDK</strong>でTypeScriptのAgent構築が即座に可能！
 - <strong>AWS CDK</strong>で再現性100%のインフラ管理
-- Mantleは<strong>低コスト・EigenDA</strong>でAI Agentに最適なレイヤー2
-
-</div>
-<div>
-
-<div class="card accent">
-
-### 🏆 Mantle Turing Test Hackathon 2026
-賞金総額 <strong>$100K</strong> | 締切 <strong>6月15日</strong>
-
-<span style="font-size:0.82em;">・ AI Trading ・ AI Alpha & Data ・ AI x RWA<br>・ <strong>AI DevTools</strong> ・ <strong>Agentic Wallets</strong> ← おすすめ</span>
-
-</div>
-
-<div class="highlight" style="margin-top: 10px;">
-🚀 今すぐ作れる！一緒に作ろう 👋
-</div>
+- AWSのフルマネージド<strong>サーバーレス</strong>サービスを使って簡単かつ低コストで構築
+- Mantleは<strong>低コスト・EigenDA</strong>でオンチェーンAI Agent向けのレイヤー2
 
 </div>
 </div>
@@ -1215,15 +1129,10 @@ export const getSwapQuote = createTool({
 
 <!-- _class: ending -->
 
-# ありがとうございました 🙏
+# Thank you！！
 
 ## Let's Build Onchain AI Agents on Mantle!
 
 Haruki — AWS Community Builder / Web3 Engineer
 
 X: <strong>@haruki_web3</strong>
-
-<br>
-
-📣 Mantle Turing Test Hackathon 2026 — Apply by <strong>June 15</strong>
-https://dorahacks.io/hackathon/mantleturingtesthackathon2026/detail

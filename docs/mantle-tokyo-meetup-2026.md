@@ -472,47 +472,14 @@ style: |
 
 <!-- _class: title -->
 
-# Mantle上でのオンチェーン<br>AI Agent 開発
-
-## RealClawを活用した自律型エージェント構築デモ
+# Mantle上でのオンチェーンAI Agent 開発
 
 2026年6月3日 ｜ AI Meets Crypto — Mantle Tokyo Meetup
 <strong>Haruki</strong> — AWS Community Builder (AI Engineering) / Web3 Engineer
 
 ---
 
-## AI × Web3 × Cloudの交差点で活動するエンジニア
-
-<div class="columns col-6-4" style="margin-top: 14px;">
-<div>
-
-### 👤 Haruki
-
-- <strong>AWS Community Builder</strong> (AI Engineering)
-- <strong>Web3コミュニティ UNCHAIN</strong> 運営メンバー
-- <strong>ハッカソン受賞歴</strong>：ETH Tokyo / 次世代生成AI自動車ハッカソン 他
-- AI × Web3 × クラウドの3領域を横断して活動
-
-<div style="margin-top:16px; font-size:0.78em; color: #94A3B8;">X: @haruki_web3</div>
-
-</div>
-<div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
-
-<div class="card accent">
-🤖 <strong>AI Engineering</strong><br>
-<span style="font-size:0.82em;color:#94A3B8;">LLM / Agent / RAG / AI SDK</span>
-</div>
-<div class="card warn">
-⛓️ <strong>Web3</strong><br>
-<span style="font-size:0.82em;color:#94A3B8;">Ethereum / Mantle L2 / Solidity</span>
-</div>
-<div class="card blue">
-☁️ <strong>AWS Cloud</strong><br>
-<span style="font-size:0.82em;color:#94A3B8;">Serverless / CDK / Bedrock</span>
-</div>
-
-</div>
-</div>
+![bg](./img/me.png)
 
 ---
 

@@ -588,56 +588,56 @@ style: |
 <div class="card accent">
 
 ### 🧠 LLM
-<strong>推論エンジン</strong><br>
+<strong>　　推論エンジン</strong><br>
 
 </div>
 <div class="card accent">
 
 ### 🔧 Tool Calling
-<strong>外部アクション</strong><br>
+<strong>　　外部アクション</strong><br>
 
 </div>
 <div class="card accent">
 
 ### 💾 Memory
-<strong>記憶・文脈保持</strong><br>
+<strong>　　記憶・コンテキストs保持</strong><br>
 
 </div>
 <div class="card warn">
 
 ### 🔑 Wallet / Signer
-<strong>秘密鍵管理</strong><br>
+<strong>　　秘密鍵管理</strong><br>
 
 </div>
 <div class="card warn">
 
 ### ⛓️ Chain Connector
-<strong>ブロックチェーン接続</strong><br>
+<strong>　　ブロックチェーン接続</strong><br>
 
 </div>
 <div class="card warn">
 
 ### 🛡️ Risk Evaluator
-<strong>安全性チェック</strong><br>
+<strong>　　安全性チェック</strong><br>
 
 </div>
 <div class="card blue">
 
 ### 🎯 Agent Framework
-<strong>オーケストレーション</strong><br>
+<strong>　　オーケストレーション</strong><br>
 
 </div>
 <div class="card blue">
 
 ### 🌐 API / UI Layer
-<strong>ユーザーインターフェース</strong><br>
+<strong>　　ユーザーインターフェース</strong><br>
 
 </div>
 
 <div class="card blue">
 
 ### ♻️ LLM Ops
-<strong>Langfuse等による性能評価</strong><br>
+<strong>　　継続的な性能評価</strong><br>
 
 </div>
 </div>

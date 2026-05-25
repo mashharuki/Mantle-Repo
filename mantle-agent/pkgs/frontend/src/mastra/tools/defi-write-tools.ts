@@ -116,7 +116,9 @@ const QUOTER_V2_ABI = [
 	},
 ] as const;
 
-// Agni SwapRouter ABI (exactInputSingle + exactInput)
+// Agni SwapRouter ABI — SwapRouter02 (V2) format: NO deadline in struct
+// Selector: exactInput    = 0xb858183f
+// Selector: exactInputSingle = 0x04e45aaf
 const SWAP_ROUTER_ABI = [
 	{
 		inputs: [
@@ -126,7 +128,6 @@ const SWAP_ROUTER_ABI = [
 					{ name: "tokenOut", type: "address" },
 					{ name: "fee", type: "uint24" },
 					{ name: "recipient", type: "address" },
-					{ name: "deadline", type: "uint256" },
 					{ name: "amountIn", type: "uint256" },
 					{ name: "amountOutMinimum", type: "uint256" },
 					{ name: "sqrtPriceLimitX96", type: "uint160" },
@@ -146,7 +147,6 @@ const SWAP_ROUTER_ABI = [
 				components: [
 					{ name: "path", type: "bytes" },
 					{ name: "recipient", type: "address" },
-					{ name: "deadline", type: "uint256" },
 					{ name: "amountIn", type: "uint256" },
 					{ name: "amountOutMinimum", type: "uint256" },
 				],
@@ -433,7 +433,6 @@ export const executeAgniSwap = createTool({
 		}
 
 		// Step 3: Execute swap
-		const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
 		const useDirect = isDirectPool(
 			tokenInInfo.address,
 			tokenOutInfo.address,
@@ -442,21 +441,21 @@ export const executeAgniSwap = createTool({
 		let swapTxHash: string;
 
 		if (useDirect) {
-			// Single-hop: one token is WMNT, direct pool exists
+			// Single-hop via exactInput (2-token path) — matches Agni frontend behavior
+			const directPath = encodeV3Path(
+				[tokenInInfo.address, tokenOutInfo.address],
+				[feeTier],
+			);
 			const { request: swapRequest } = await publicClient.simulateContract({
 				address: addresses.swapRouter,
 				abi: SWAP_ROUTER_ABI,
-				functionName: "exactInputSingle",
+				functionName: "exactInput",
 				args: [
 					{
-						tokenIn: tokenInInfo.address,
-						tokenOut: tokenOutInfo.address,
-						fee: feeTier,
+						path: directPath,
 						recipient: agentAddress,
-						deadline,
 						amountIn: amountInWei,
 						amountOutMinimum: amountOutMin,
-						sqrtPriceLimitX96: 0n,
 					},
 				],
 				account: walletClient.account,
@@ -480,7 +479,6 @@ export const executeAgniSwap = createTool({
 					{
 						path,
 						recipient: agentAddress,
-						deadline,
 						amountIn: amountInWei,
 						amountOutMinimum: amountOutMin,
 					},
@@ -636,7 +634,40 @@ export const agniSwapQuote = createTool({
 			}
 		}
 
-		// If no direct pool found, fall back to multi-hop via WMNT
+		// Fallback 1: try quoteExactInput with DIRECT 2-token path
+		// Agni testnet QuoterV2 handles exactInput correctly but exactInputSingle may fail
+		if (!best) {
+			console.log(
+				`[agni-swap-quote] quoteExactInputSingle failed — trying quoteExactInput with direct 2-token path`,
+			);
+			for (const tier of feeTiersToTry) {
+				try {
+					const directPath = encodeV3Path(
+						[tokenInInfo.address, tokenOutInfo.address],
+						[tier],
+					);
+					const result = await publicClient.simulateContract({
+						address: addresses.quoterV2,
+						abi: QUOTER_V2_ABI,
+						functionName: "quoteExactInput",
+						args: [directPath, amountInWei],
+					});
+					const rawOut = result.result[0];
+					if (best === null || rawOut > best.rawOut) {
+						best = { feeTier: tier, rawOut, isMultiHop: false };
+					}
+					console.log(
+						`[agni-swap-quote] exactInput direct feeTier=${tier}: ${formatUnits(rawOut, tokenOutInfo.decimals)} ${input.tokenOut}`,
+					);
+				} catch {
+					console.log(
+						`[agni-swap-quote] exactInput direct feeTier=${tier}: no pool`,
+					);
+				}
+			}
+		}
+
+		// Fallback 2: try quoteExactInput with 3-token path via WMNT (non-WMNT pairs only)
 		if (!best) {
 			const wmntAddr = KNOWN_TOKENS[network].WMNT?.address;
 			if (
@@ -840,8 +871,6 @@ export const agniSwapExecute = createTool({
 			input.amountOutMinimum,
 			tokenOutInfo.decimals,
 		);
-		const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
-
 		let swapTxHash: string;
 		// isMultiHop from quote step takes priority; fall back to address-based heuristic
 		const useDirect =
@@ -855,23 +884,24 @@ export const agniSwapExecute = createTool({
 			// Skip simulation on testnet — pools may not exist and simulateContract would hang/revert.
 			// Also provide explicit gas to bypass eth_estimateGas which would also fail without a live pool.
 			if (useDirect) {
+				// Single-hop via exactInput (2-token path) — matches Agni frontend behavior
+				const directPath = encodeV3Path(
+					[tokenInInfo.address, tokenOutInfo.address],
+					[feeTier],
+				);
 				console.log(
-					`[agni-swap-execute] Step 3/3: Sending exactInputSingle directly (testnet) ${input.amountIn} ${input.tokenIn} → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum}, feeTier=${feeTier})`,
+					`[agni-swap-execute] Step 3/3: Sending exactInput (direct 2-token path, testnet) ${input.amountIn} ${input.tokenIn} → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum}, feeTier=${feeTier})`,
 				);
 				swapTxHash = await walletClient.writeContract({
 					address: addresses.swapRouter,
 					abi: SWAP_ROUTER_ABI,
-					functionName: "exactInputSingle",
+					functionName: "exactInput",
 					args: [
 						{
-							tokenIn: tokenInInfo.address,
-							tokenOut: tokenOutInfo.address,
-							fee: feeTier,
+							path: directPath,
 							recipient: agentAddress,
-							deadline,
 							amountIn: amountInWei,
 							amountOutMinimum: amountOutMin,
-							sqrtPriceLimitX96: 0n,
 						},
 					],
 					account: walletClient.account,
@@ -896,7 +926,6 @@ export const agniSwapExecute = createTool({
 						{
 							path,
 							recipient: agentAddress,
-							deadline,
 							amountIn: amountInWei,
 							amountOutMinimum: amountOutMin,
 						},
@@ -908,23 +937,24 @@ export const agniSwapExecute = createTool({
 			}
 		} else {
 			if (useDirect) {
+				// Single-hop via exactInput (2-token path) — matches Agni frontend behavior
+				const directPath = encodeV3Path(
+					[tokenInInfo.address, tokenOutInfo.address],
+					[feeTier],
+				);
 				console.log(
-					`[agni-swap-execute] Step 3/3: Simulating exactInputSingle ${input.amountIn} ${input.tokenIn} → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum}, feeTier=${feeTier}, network=${network})`,
+					`[agni-swap-execute] Step 3/3: Simulating exactInput (direct 2-token path) ${input.amountIn} ${input.tokenIn} → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum}, feeTier=${feeTier}, network=${network})`,
 				);
 				const { request: swapRequest } = await publicClient.simulateContract({
 					address: addresses.swapRouter,
 					abi: SWAP_ROUTER_ABI,
-					functionName: "exactInputSingle",
+					functionName: "exactInput",
 					args: [
 						{
-							tokenIn: tokenInInfo.address,
-							tokenOut: tokenOutInfo.address,
-							fee: feeTier,
+							path: directPath,
 							recipient: agentAddress,
-							deadline,
 							amountIn: amountInWei,
 							amountOutMinimum: amountOutMin,
-							sqrtPriceLimitX96: 0n,
 						},
 					],
 					account: walletClient.account,
@@ -948,7 +978,6 @@ export const agniSwapExecute = createTool({
 						{
 							path,
 							recipient: agentAddress,
-							deadline,
 							amountIn: amountInWei,
 							amountOutMinimum: amountOutMin,
 						},

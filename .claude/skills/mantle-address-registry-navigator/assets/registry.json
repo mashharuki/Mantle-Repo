@@ -227,6 +227,298 @@
         "retrieved_at": "2026-05-15T00:00:00Z"
       },
       "notes": "MANA ERC-20 token on Mantle Sepolia testnet. Confirmed by user on 2026-05-15."
+    },
+    {
+      "key": "AGNI_POOL_DEPLOYER_TESTNET",
+      "label": "Agni Pool Deployer (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0x6C53C6cC7c10B389c5680458Fc0C4079f3F012b4",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "AgniPoolDeployer",
+        "agni_pool_deployer_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "pool_deployer",
+      "supports": [
+        "deploy"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance pool deployer on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_FACTORY_TESTNET",
+      "label": "Agni Factory (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0xA9AcD50B042A72c33d05fDcC8ad209d3aD361762",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "AgniFactory",
+        "agni_factory_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "factory",
+      "supports": [
+        "deploy"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance factory on Mantle Sepolia testnet. InitCodeHash: 0xaf9bd540c3449b723624376f906d8d3a0e6441ff18b847f05f4f85789ab64d9a"
+    },
+    {
+      "key": "AGNI_INIT_CODE_HASH_ADDRESS_TESTNET",
+      "label": "Agni InitCodeHash Address (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0xa18655b73FDC38665CFB9e09A5a0a10C14e68EC5",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "InitCodeHashAddress",
+        "agni_init_code_hash_address_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "init_code_hash_address",
+      "supports": [
+        "lookup"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance init code hash reference address on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_SWAP_ROUTER_TESTNET",
+      "label": "Agni Swap Router (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0xb5Dc27be0a565A4A80440f41c74137001920CB22",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "SwapRouter",
+        "agni_swap_router_testnet",
+        "agni_router_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "router",
+      "supports": [
+        "swap"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance swap router on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_QUOTER_TESTNET",
+      "label": "Agni Quoter (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0xA82F8dC4704d3512b120de70480219761F24B6Eb",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "Quoter",
+        "agni_quoter_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "quoter_v1",
+      "supports": [
+        "quote"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance Quoter (V1) on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_QUOTER_V2_TESTNET",
+      "label": "Agni Quoter V2 (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0x9Da17239a4170f50A5A2c11813BD0C601b5c9693",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "QuoterV2",
+        "agni_quoter_v2_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "quoter",
+      "supports": [
+        "quote"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance QuoterV2 on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_TICK_LENS_TESTNET",
+      "label": "Agni Tick Lens (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0xB4EB98c6d7D4807033Ae6195241ef7A839070748",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "TickLens",
+        "agni_tick_lens_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "tick_lens",
+      "supports": [
+        "lookup"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance TickLens on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_NFT_DESCRIPTOR_TESTNET",
+      "label": "Agni NFT Descriptor (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0x7C20eE7CC3230003401cC19BF076871Aedf39856",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "NFTDescriptor",
+        "agni_nft_descriptor_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "nft_descriptor",
+      "supports": [
+        "lookup"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance NFTDescriptor on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_NONFUNGIBLE_TOKEN_POSITION_DESCRIPTOR_TESTNET",
+      "label": "Agni Nonfungible Token Position Descriptor (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0x497bd1C86a1088e80f58EaA13de8C81aB70a4e79",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "NonfungibleTokenPositionDescriptor",
+        "agni_nonfungible_token_position_descriptor_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "nonfungible_token_position_descriptor",
+      "supports": [
+        "lookup"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance NonfungibleTokenPositionDescriptor on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_POSITION_MANAGER_TESTNET",
+      "label": "Agni Nonfungible Position Manager (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0x71959543c31EC4d68D9D6C492Bf69A1C174bb394",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "NonfungiblePositionManager",
+        "agni_position_manager_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "position_manager",
+      "supports": [
+        "add_liquidity",
+        "remove_liquidity",
+        "position_management"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance NonfungiblePositionManager on Mantle Sepolia testnet."
+    },
+    {
+      "key": "AGNI_INTERFACE_MULTICALL_TESTNET",
+      "label": "Agni Interface Multicall (Testnet)",
+      "environment": "testnet",
+      "category": "defi",
+      "address": "0x49b05721B9615dC1811E20F47D5700dA2d6Ed429",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "AgniInterfaceMulticall",
+        "agni_interface_multicall_testnet"
+      ],
+      "protocol_id": "agni",
+      "contract_role": "multicall",
+      "supports": [
+        "multicall"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Agni Finance interface multicall on Mantle Sepolia testnet."
+    },
+    {
+      "key": "MULTICALL3_TESTNET",
+      "label": "Multicall3 (Testnet)",
+      "environment": "testnet",
+      "category": "system",
+      "address": "0x521751C88EafdCAEd9cAbb4dB35a1400D6933428",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "Multicall3",
+        "multicall3_testnet"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "Multicall3 on Mantle Sepolia testnet, as listed in the Agni Finance testnet deployment."
+    },
+    {
+      "key": "USDC_TESTNET",
+      "label": "USD Coin (Testnet)",
+      "environment": "testnet",
+      "category": "token",
+      "address": "0xAcab8129E2cE587fD203FD770ec9ECAFA2C88080",
+      "status": "active",
+      "is_official": true,
+      "aliases": [
+        "USDC",
+        "usdc_testnet"
+      ],
+      "source": {
+        "url": "https://testnet.agni.finance",
+        "retrieved_at": "2026-05-25T00:00:00Z"
+      },
+      "notes": "USD Coin on Mantle Sepolia testnet."
     }
   ]
 }

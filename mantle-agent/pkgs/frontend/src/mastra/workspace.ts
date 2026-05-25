@@ -5,10 +5,7 @@ import path from "node:path";
 const workspaceBasePath = path.resolve(process.cwd(), ".mastra-workspace");
 
 // Prefer MASTRA_SKILLS_DIR env var; fall back to repo-relative path
-const defaultSkillsPath = path.resolve(
-	process.cwd(),
-	"src/mastra/skills",
-);
+const defaultSkillsPath = path.resolve(process.cwd(), "src/mastra/skills");
 const configuredSkillsPath = process.env.MASTRA_SKILLS_DIR
 	? path.resolve(process.env.MASTRA_SKILLS_DIR)
 	: defaultSkillsPath;
@@ -27,7 +24,7 @@ const skills = canAccessDir(configuredSkillsPath) ? [configuredSkillsPath] : [];
 if (skills.length === 0) {
 	console.warn(
 		`[workspace] Skills path not accessible: ${configuredSkillsPath}. ` +
-		"Set MASTRA_SKILLS_DIR to an absolute path to enable workspace skills.",
+			"Set MASTRA_SKILLS_DIR to an absolute path to enable workspace skills.",
 	);
 }
 

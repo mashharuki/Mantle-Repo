@@ -1,13 +1,13 @@
-import { getPublicClient, getAgentAddress } from "@/lib/viem-clients";
+import { getAgentAddress, getPublicClient } from "@/lib/viem-clients";
 import { formatEther } from "viem";
 
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
 	const { searchParams } = new URL(req.url);
-	const network = (searchParams.get("network") ?? "sepolia") as
+	const network = (searchParams.get("network") ?? "testnet") as
 		| "mainnet"
-		| "sepolia";
+		| "testnet";
 
 	if (!process.env.AGENT_PRIVATE_KEY) {
 		return Response.json({ configured: false }, { status: 200 });

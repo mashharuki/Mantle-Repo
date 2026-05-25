@@ -3,7 +3,7 @@ import { z } from "zod";
 import { REGISTRY_CONTRACTS } from "./address-registry-tools";
 
 function getRpcUrl(network: string): string {
-	if (network === "sepolia") {
+	if (network === "testnet") {
 		return process.env.MANTLE_RPC_TESTNET ?? "https://rpc.sepolia.mantle.xyz";
 	}
 	return process.env.MANTLE_RPC_MAINNET ?? "https://rpc.mantle.xyz";
@@ -227,7 +227,7 @@ export const getSwapQuote = createTool({
 			.string()
 			.describe("Amount in human-readable units (e.g. '1.5' for 1.5 WMNT)"),
 		network: z
-			.enum(["mainnet", "sepolia"])
+			.enum(["mainnet", "testnet"])
 			.default("mainnet")
 			.describe("Mantle network"),
 		protocol: z

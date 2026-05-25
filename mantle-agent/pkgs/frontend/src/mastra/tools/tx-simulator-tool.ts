@@ -2,7 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 
 function getRpcUrl(network: string): string {
-	if (network === "sepolia") {
+	if (network === "testnet") {
 		return process.env.MANTLE_RPC_TESTNET ?? "https://rpc.sepolia.mantle.xyz";
 	}
 	return process.env.MANTLE_RPC_MAINNET ?? "https://rpc.mantle.xyz";
@@ -86,7 +86,7 @@ async function simulateViaTenderly(
 	if (!key || !account || !project)
 		throw new Error("Tenderly credentials not configured");
 
-	const chainId = network === "sepolia" ? 5003 : 5000;
+	const chainId = network === "testnet" ? 5003 : 5000;
 	const res = await fetch(
 		`https://api.tenderly.co/api/v1/account/${account}/project/${project}/simulate`,
 		{
@@ -176,7 +176,7 @@ export const simulateTransaction = createTool({
 			.default("0x0")
 			.describe("ETH value in hex (e.g. 0x0 or 0xde0b6b3a7640000 for 1 MNT)"),
 		network: z
-			.enum(["mainnet", "sepolia"])
+			.enum(["mainnet", "testnet"])
 			.default("mainnet")
 			.describe("Mantle network"),
 		blockTag: z.string().default("latest").describe("Block tag for simulation"),

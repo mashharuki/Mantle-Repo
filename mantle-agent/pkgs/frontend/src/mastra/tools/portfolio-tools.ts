@@ -28,8 +28,13 @@ const KNOWN_TOKENS_MAINNET = [
 const KNOWN_TOKENS_TESTNET = [
 	{
 		symbol: "WMNT",
-		address: "0x19f5557E23e9914A18239990f6C70D68FDF0deD5",
+		address: "0x67A1f4A939b477A6b7c5BF94D97E45dE87E608eF",
 		decimals: 18,
+	},
+	{
+		symbol: "USDC",
+		address: "0xAcab8129E2cE587fD203FD770ec9ECAFA2C88080",
+		decimals: 6,
 	},
 ];
 
@@ -58,7 +63,7 @@ const KNOWN_SPENDERS_MAINNET = [
 ];
 
 function getRpcUrl(network: string): string {
-	if (network === "sepolia") {
+	if (network === "testnet") {
 		return process.env.MANTLE_RPC_TESTNET ?? "https://rpc.sepolia.mantle.xyz";
 	}
 	return process.env.MANTLE_RPC_MAINNET ?? "https://rpc.mantle.xyz";
@@ -125,7 +130,7 @@ export const getWalletBalance = createTool({
 	inputSchema: z.object({
 		address: z.string().describe("EVM wallet address (0x...)"),
 		network: z
-			.enum(["mainnet", "sepolia"])
+			.enum(["mainnet", "testnet"])
 			.default("mainnet")
 			.describe("Mantle network to query"),
 	}),
@@ -236,7 +241,7 @@ export const getTokenAllowances = createTool({
 			.string()
 			.describe("Wallet address (owner) to check allowances for"),
 		network: z
-			.enum(["mainnet", "sepolia"])
+			.enum(["mainnet", "testnet"])
 			.default("mainnet")
 			.describe("Mantle network to query"),
 	}),
@@ -320,7 +325,7 @@ export const getTokenAllowances = createTool({
 
 const WMNT_ADDRESS: Record<string, string> = {
 	mainnet: "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
-	sepolia: "0x19f5557E23e9914A18239990f6C70D68FDF0deD5",
+	testnet: "0x67A1f4A939b477A6b7c5BF94D97E45dE87E608eF",
 };
 
 export const getMntWmntBalances = createTool({
@@ -330,9 +335,9 @@ export const getMntWmntBalances = createTool({
 	inputSchema: z.object({
 		address: z.string().describe("EVM wallet address (0x...)"),
 		network: z
-			.enum(["mainnet", "sepolia"])
+			.enum(["mainnet", "testnet"])
 			.default("mainnet")
-			.describe("Mantle network to query (mainnet or sepolia)"),
+			.describe("Mantle network to query (mainnet or testnet)"),
 	}),
 	outputSchema: z.object({
 		address: z.string(),

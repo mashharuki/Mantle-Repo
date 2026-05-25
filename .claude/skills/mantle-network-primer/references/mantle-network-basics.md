@@ -70,7 +70,7 @@ Use this file for factual grounding when answering Mantle onboarding, difference
   - `https://thirdweb.com/mantle-sepolia-testnet/faucet`
 - Bridge: `https://app.mantle.xyz/bridge?network=sepolia`
 - Recommended Solidity compiler: `v0.8.23 or below`
-- Wrapped MNT: `0x19f5557E23e9914A18239990f6C70D68FDF0deD5`
+- Wrapped MNT: `0x67A1f4A939b477A6b7c5BF94D97E45dE87E608eF`
 - Note: Mantle docs indicate Sepolia MNT can be requested directly from faucet (subject to limits).
 
 ## Developer Hints

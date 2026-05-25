@@ -11,9 +11,9 @@ interface AgentWalletInfo {
 }
 
 export function AgentWalletBadge({
-	network = "sepolia",
+	network = "testnet",
 }: {
-	network?: "mainnet" | "sepolia";
+	network?: "mainnet" | "testnet";
 }) {
 	const [info, setInfo] = useState<AgentWalletInfo | null>(null);
 

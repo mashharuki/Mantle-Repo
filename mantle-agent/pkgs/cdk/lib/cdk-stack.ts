@@ -29,7 +29,6 @@ type OptionalKey = (typeof OPTIONAL_KEYS)[number];
  * Lambda Web Adaptor上で動かす
  */
 export class CdkStack extends cdk.Stack {
-	
 	/**
 	 * コンストラクター
 	 * @param scope

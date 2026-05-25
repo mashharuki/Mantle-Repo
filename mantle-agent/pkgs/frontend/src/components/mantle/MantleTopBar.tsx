@@ -51,7 +51,7 @@ export function MantleTopBar({
 			{/* Badges */}
 			<div className="flex shrink-0 items-center gap-2">
 				{/* Agent wallet badge */}
-				<AgentWalletBadge network="sepolia" />
+				<AgentWalletBadge network="testnet" />
 
 				{/* Gas badge */}
 				<div

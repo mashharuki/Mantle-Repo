@@ -1,10 +1,10 @@
-import { createTool } from "@mastra/core/tools";
-import { z } from "zod";
 import {
-	getPublicClient,
 	getAgentWalletClient,
 	getExplorerUrl,
+	getPublicClient,
 } from "@/lib/viem-clients";
+import { createTool } from "@mastra/core/tools";
+import { z } from "zod";
 
 const DEFAULT_COUNTER_ADDRESS =
 	"0xfDFaDffE28d17935A48ffB1Ab3076dBc8CadE623" as const;
@@ -47,7 +47,7 @@ const COUNTER_ABI = [
 	},
 ] as const;
 
-const networkSchema = z.enum(["mainnet", "sepolia"]).default("sepolia");
+const networkSchema = z.enum(["mainnet", "testnet"]).default("testnet");
 
 export const getCounterState = createTool({
 	id: "get-counter-state",
@@ -69,7 +69,7 @@ export const getCounterState = createTool({
 		network: z.string(),
 	}),
 	execute: async (input) => {
-		const network = input.network ?? "sepolia";
+		const network = input.network ?? "testnet";
 		const address = (input.contractAddress ??
 			DEFAULT_COUNTER_ADDRESS) as `0x${string}`;
 		const client = getPublicClient(network);
@@ -108,7 +108,7 @@ export const counterIncrement = createTool({
 		network: z.string(),
 	}),
 	execute: async (input) => {
-		const network = input.network ?? "sepolia";
+		const network = input.network ?? "testnet";
 		const address = (input.contractAddress ??
 			DEFAULT_COUNTER_ADDRESS) as `0x${string}`;
 		const walletClient = getAgentWalletClient(network);
@@ -157,7 +157,7 @@ export const counterIncrementBy = createTool({
 		network: z.string(),
 	}),
 	execute: async (input) => {
-		const network = input.network ?? "sepolia";
+		const network = input.network ?? "testnet";
 		const address = (input.contractAddress ??
 			DEFAULT_COUNTER_ADDRESS) as `0x${string}`;
 		const walletClient = getAgentWalletClient(network);
@@ -202,7 +202,7 @@ export const counterReset = createTool({
 		network: z.string(),
 	}),
 	execute: async (input) => {
-		const network = input.network ?? "sepolia";
+		const network = input.network ?? "testnet";
 		const address = (input.contractAddress ??
 			DEFAULT_COUNTER_ADDRESS) as `0x${string}`;
 		const walletClient = getAgentWalletClient(network);

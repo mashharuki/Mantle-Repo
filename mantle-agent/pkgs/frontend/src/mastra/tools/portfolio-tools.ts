@@ -28,8 +28,13 @@ const KNOWN_TOKENS_MAINNET = [
 const KNOWN_TOKENS_TESTNET = [
 	{
 		symbol: "WMNT",
-		address: "0x19f5557E23e9914A18239990f6C70D68FDF0deD5",
+		address: "0x67A1f4A939b477A6b7c5BF94D97E45dE87E608eF",
 		decimals: 18,
+	},
+	{
+		symbol: "USDC",
+		address: "0xAcab8129E2cE587fD203FD770ec9ECAFA2C88080",
+		decimals: 6,
 	},
 ];
 
@@ -58,7 +63,7 @@ const KNOWN_SPENDERS_MAINNET = [
 ];
 
 function getRpcUrl(network: string): string {
-	if (network === "sepolia") {
+	if (network === "testnet") {
 		return process.env.MANTLE_RPC_TESTNET ?? "https://rpc.sepolia.mantle.xyz";
 	}
 	return process.env.MANTLE_RPC_MAINNET ?? "https://rpc.mantle.xyz";
@@ -125,7 +130,7 @@ export const getWalletBalance = createTool({
 	inputSchema: z.object({
 		address: z.string().describe("EVM wallet address (0x...)"),
 		network: z
-			.enum(["mainnet", "sepolia"])
+			.enum(["mainnet", "testnet"])
 			.default("mainnet")
 			.describe("Mantle network to query"),
 	}),
@@ -236,7 +241,7 @@ export const getTokenAllowances = createTool({
 			.string()
 			.describe("Wallet address (owner) to check allowances for"),
 		network: z
-			.enum(["mainnet", "sepolia"])
+			.enum(["mainnet", "testnet"])
 			.default("mainnet")
 			.describe("Mantle network to query"),
 	}),
@@ -314,6 +319,90 @@ export const getTokenAllowances = createTool({
 			collectedAt,
 			nonZeroCount,
 			highRiskCount,
+		};
+	},
+});
+
+const WMNT_ADDRESS: Record<string, string> = {
+	mainnet: "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+	testnet: "0x67A1f4A939b477A6b7c5BF94D97E45dE87E608eF",
+};
+
+export const getMntWmntBalances = createTool({
+	id: "get-mnt-wmnt-balances",
+	description:
+		"Fetch MNT (native) and WMNT (wrapped MNT) balances for a wallet address on Mantle mainnet or Sepolia testnet in a single call. Read-only.",
+	inputSchema: z.object({
+		address: z.string().describe("EVM wallet address (0x...)"),
+		network: z
+			.enum(["mainnet", "testnet"])
+			.default("mainnet")
+			.describe("Mantle network to query (mainnet or testnet)"),
+	}),
+	outputSchema: z.object({
+		address: z.string(),
+		network: z.string(),
+		mnt: z.object({
+			balanceWei: z.string(),
+			balanceNormalized: z.string(),
+		}),
+		wmnt: z.object({
+			address: z.string(),
+			balanceRaw: z.string(),
+			balanceNormalized: z.string(),
+		}),
+		collectedAt: z.string(),
+		errors: z.array(z.string()),
+	}),
+	execute: async (inputData) => {
+		const address = inputData.address;
+		const network = inputData.network ?? "mainnet";
+		const rpcUrl = getRpcUrl(network);
+		const wmntAddr = WMNT_ADDRESS[network];
+		const errors: string[] = [];
+		const collectedAt = new Date().toISOString();
+
+		let mntRaw = 0n;
+		try {
+			const hex = (await rpcCall(rpcUrl, "eth_getBalance", [
+				address,
+				"latest",
+			])) as string;
+			mntRaw = BigInt(hex);
+		} catch (e) {
+			errors.push(
+				`Failed to fetch MNT balance: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
+
+		let wmntRaw = 0n;
+		try {
+			const data = encodeBalanceOfCall(address);
+			const hex = (await rpcCall(rpcUrl, "eth_call", [
+				{ to: wmntAddr, data },
+				"latest",
+			])) as string;
+			wmntRaw = BigInt(hex === "0x" ? "0x0" : hex);
+		} catch (e) {
+			errors.push(
+				`Failed to fetch WMNT balance: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
+
+		return {
+			address,
+			network,
+			mnt: {
+				balanceWei: mntRaw.toString(),
+				balanceNormalized: formatUnits(mntRaw, 18),
+			},
+			wmnt: {
+				address: wmntAddr,
+				balanceRaw: wmntRaw.toString(),
+				balanceNormalized: formatUnits(wmntRaw, 18),
+			},
+			collectedAt,
+			errors,
 		};
 	},
 });

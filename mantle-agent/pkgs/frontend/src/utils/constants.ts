@@ -11,10 +11,10 @@ export const MANTLE_GREEN = "#22D366";
 export const MANTLE_ORANGE = "#FF8C42";
 
 export const SUGGESTIONS = [
-	"Mantle Network の基本を教えてください",
-	"Merchant Moe のルーターアドレスは？",
+	"Counter の現在値を教えて (Sepolia)",
+	"Counter をインクリメントして",
 	"Mantle の DeFi プロトコル一覧を見せて",
-	"1 WMNT → USDC のスワップ見積もり",
-	"スワップのリスク評価をしてください",
+	"1 WMNT → USDT のスワップ見積もり",
+	"0.001 MNT を 0xABCD...に送って",
 	"コントラクトデプロイのチェックリスト",
 ];

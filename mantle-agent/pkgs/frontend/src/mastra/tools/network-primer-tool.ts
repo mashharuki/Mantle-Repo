@@ -26,7 +26,7 @@ const NETWORK_DATA = {
 		explorer: "https://sepolia.mantlescan.xyz/",
 		gasToken: "MNT",
 		bridgeUrl: "https://app.mantle.xyz/bridge?network=sepolia",
-		wmntAddress: "0x19f5557E23e9914A18239990f6C70D68FDF0deD5",
+		wmntAddress: "0x67A1f4A939b477A6b7c5BF94D97E45dE87E608eF",
 		faucetUrl: "https://faucet.sepolia.mantle.xyz/",
 		recommendedSolidity: "v0.8.23 or below",
 	},

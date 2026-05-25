@@ -2,12 +2,7 @@ import { MANTLE_BLUE, MANTLE_GREEN } from "@/utils/constants";
 import { prettifyToolName } from "@/utils/helpers";
 import { ToolUIPart } from "ai";
 import { Loader2 } from "lucide-react";
-import {
-	Tool,
-	ToolContent,
-	ToolInput,
-	ToolOutput,
-} from "../ai-elements/tool";
+import { Tool, ToolContent, ToolInput, ToolOutput } from "../ai-elements/tool";
 
 function StatusBadge({ state }: { state: ToolUIPart["state"] }) {
 	const isDone = state === "output-available";
@@ -79,10 +74,7 @@ export function MantleToolDisplay({ part }: { part: ToolUIPart }) {
 				>
 					Tool Call
 				</span>
-				<span
-					className="text-xs font-semibold"
-					style={{ color: "#C8D8E8" }}
-				>
+				<span className="text-xs font-semibold" style={{ color: "#C8D8E8" }}>
 					{prettifyToolName(part.type)}
 				</span>
 				<div className="flex-1" />

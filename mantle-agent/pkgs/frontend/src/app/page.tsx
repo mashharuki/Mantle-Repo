@@ -24,6 +24,66 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useCallback, useMemo, useState } from "react";
 
+function toUserFriendlyError(err: Error): { title: string; detail: string } {
+	const msg = err.message ?? "";
+	if (
+		msg.includes("RESOURCE_EXHAUSTED") ||
+		msg.includes("prepayment credits") ||
+		msg.includes("429")
+	) {
+		return {
+			title: "APIクレジット不足",
+			detail:
+				"Google AI Studio の利用クレジットが不足しています。https://ai.studio/projects でプランを確認してください。",
+		};
+	}
+	if (
+		msg.includes("503") ||
+		msg.includes("SERVICE_UNAVAILABLE") ||
+		msg.includes("overloaded")
+	) {
+		return {
+			title: "AIサービスが混雑中",
+			detail:
+				"現在 AI サービスが一時的に過負荷状態です。しばらく待ってから再度お試しください。",
+		};
+	}
+	if (
+		msg.includes("401") ||
+		msg.includes("UNAUTHENTICATED") ||
+		msg.includes("API key")
+	) {
+		return {
+			title: "認証エラー",
+			detail:
+				"AIサービスの認証に失敗しました。APIキーが正しく設定されているか確認してください。",
+		};
+	}
+	if (msg.includes("timeout") || msg.includes("DEADLINE_EXCEEDED")) {
+		return {
+			title: "タイムアウト",
+			detail:
+				"応答の取得中にタイムアウトが発生しました。しばらく待ってから再度お試しください。",
+		};
+	}
+	if (
+		msg.includes("fetch") ||
+		msg.includes("network") ||
+		msg.includes("Failed to fetch")
+	) {
+		return {
+			title: "ネットワークエラー",
+			detail:
+				"サーバーへの接続に失敗しました。ネットワーク接続を確認してください。",
+		};
+	}
+	return {
+		title: "エラーが発生しました",
+		detail:
+			"予期しないエラーが発生しました。ページを再読み込みして再度お試しください。",
+	};
+}
+
 export default function Page() {
 	const threadId = useLocalStorageId("mantle-thread-id");
 
@@ -42,9 +102,11 @@ export default function Page() {
 			}),
 	);
 
-	const { messages, sendMessage, stop, status } = useChat({ transport });
+	const { messages, sendMessage, stop, status, error } = useChat({ transport });
 
-	const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
+	const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(
+		null,
+	);
 	const clearPending = useCallback(() => setPendingSuggestion(null), []);
 	const isStreaming = status === "streaming" || status === "submitted";
 
@@ -90,9 +152,7 @@ export default function Page() {
 			/>
 
 			{/* Main area */}
-			<div
-				className="flex min-w-0 flex-1 flex-col overflow-hidden"
-			>
+			<div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 				{/* Top bar */}
 				<MantleTopBar sessionTitle={sessionTitle} status={status} />
 
@@ -111,6 +171,23 @@ export default function Page() {
 							))
 						)}
 						{status === "submitted" && <MantleThinkingIndicator />}
+						{error &&
+							(() => {
+								const { title, detail } = toUserFriendlyError(error);
+								return (
+									<div
+										className="rounded-lg border px-4 py-3 text-sm"
+										style={{
+											background: "rgba(255, 59, 48, 0.08)",
+											borderColor: "rgba(255, 59, 48, 0.35)",
+											color: "#FF6B6B",
+										}}
+									>
+										<p className="font-semibold mb-1">⚠ {title}</p>
+										<p style={{ color: "#FFAAAA" }}>{detail}</p>
+									</div>
+								);
+							})()}
 					</ConversationContent>
 					<ConversationScrollButton />
 				</Conversation>

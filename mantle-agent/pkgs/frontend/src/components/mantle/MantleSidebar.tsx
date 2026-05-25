@@ -1,24 +1,24 @@
 "use client";
 
 import {
-    MANTLE_BLUE,
-    MANTLE_BORDER,
-    MANTLE_BORDER_ACCENT,
-    MANTLE_GREEN,
-    MANTLE_SIDEBAR_BG,
-    MANTLE_TEXT_MUTED,
-    MANTLE_TEXT_PRIMARY,
-    MANTLE_TEXT_SECONDARY
+	MANTLE_BLUE,
+	MANTLE_BORDER,
+	MANTLE_BORDER_ACCENT,
+	MANTLE_GREEN,
+	MANTLE_SIDEBAR_BG,
+	MANTLE_TEXT_MUTED,
+	MANTLE_TEXT_PRIMARY,
+	MANTLE_TEXT_SECONDARY,
 } from "@/utils/constants";
 import {
-    ActivityIcon,
-    CodeIcon,
-    DatabaseIcon,
-    PlusIcon,
-    ShieldCheckIcon,
-    TerminalIcon,
-    TrendingUpIcon,
-    WalletIcon,
+	ActivityIcon,
+	CodeIcon,
+	DatabaseIcon,
+	PlusIcon,
+	ShieldCheckIcon,
+	TerminalIcon,
+	TrendingUpIcon,
+	WalletIcon,
 } from "lucide-react";
 
 const CAPABILITIES = [
@@ -144,8 +144,14 @@ export function MantleSidebar({
 							className="flex items-center gap-2 rounded-md px-2 py-1.5"
 							style={{ background: "#0F1A28" }}
 						>
-							<Icon className="size-3.5 shrink-0" style={{ color: MANTLE_BLUE }} />
-							<span className="text-[11px]" style={{ color: MANTLE_TEXT_SECONDARY }}>
+							<Icon
+								className="size-3.5 shrink-0"
+								style={{ color: MANTLE_BLUE }}
+							/>
+							<span
+								className="text-[11px]"
+								style={{ color: MANTLE_TEXT_SECONDARY }}
+							>
 								{label}
 							</span>
 						</div>

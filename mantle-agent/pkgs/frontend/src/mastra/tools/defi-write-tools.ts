@@ -1,8 +1,8 @@
 import {
-    getAgentAddress,
-    getAgentWalletClient,
-    getExplorerUrl,
-    getPublicClient,
+	getAgentAddress,
+	getAgentWalletClient,
+	getExplorerUrl,
+	getPublicClient,
 } from "@/lib/viem-clients";
 import { createTool } from "@mastra/core/tools";
 import { erc20Abi, formatUnits, parseUnits } from "viem";
@@ -434,7 +434,11 @@ export const executeAgniSwap = createTool({
 
 		// Step 3: Execute swap
 		const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
-		const useDirect = isDirectPool(tokenInInfo.address, tokenOutInfo.address, network);
+		const useDirect = isDirectPool(
+			tokenInInfo.address,
+			tokenOutInfo.address,
+			network,
+		);
 		let swapTxHash: string;
 
 		if (useDirect) {
@@ -582,7 +586,11 @@ export const agniSwapQuote = createTool({
 		);
 
 		// Try all fee tiers in parallel; pick the one with the highest output
-		type QuoteSuccess = { feeTier: number; rawOut: bigint; isMultiHop: boolean };
+		type QuoteSuccess = {
+			feeTier: number;
+			rawOut: bigint;
+			isMultiHop: boolean;
+		};
 		const results = await Promise.allSettled(
 			feeTiersToTry.map(async (tier): Promise<QuoteSuccess> => {
 				const result = await publicClient.simulateContract({
@@ -791,7 +799,9 @@ export const agniSwapExecute = createTool({
 			.number()
 			.int()
 			.default(2500)
-			.describe("Pool fee tier from quote step: 100, 500, 2500, or 10000 (default: 2500)"),
+			.describe(
+				"Pool fee tier from quote step: 100, 500, 2500, or 10000 (default: 2500)",
+			),
 		isMultiHop: z
 			.boolean()
 			.optional()

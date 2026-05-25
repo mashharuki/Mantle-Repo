@@ -61,3 +61,4 @@ pnpm run build
 - [利用可能なトークン一覧](https://token-list.mantle.xyz/mantle.tokenlist.json)
 - [Luma - AI Meets Crypto | Mantle Tokyo Meetup](https://luma.com/t2ynjrsj?tk=eVaeiY)
 - [Agni Financeコントラクトアドレス一覧](https://github.com/agni-protocol/contracts)
+- [テストネットで 1 USDC → WMNTをswapしたときのトランザクションデータ](ttps://explorer.sepolia.mantle.xyz/tx/0xdbeba1274513af346e286f3bd2b73f33fd87be08e0b0d9a89ea44de2215afeaa)

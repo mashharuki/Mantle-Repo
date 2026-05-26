@@ -30,9 +30,11 @@ function TerminalAvatar() {
 export function MantleMessage({
 	message,
 	isStreaming,
+	onTxComplete,
 }: {
 	message: UIMessage;
 	isStreaming: boolean;
+	onTxComplete?: (txHash: string, description: string) => void;
 }) {
 	const handleCopy = useCallback(async () => {
 		try {
@@ -57,7 +59,13 @@ export function MantleMessage({
 								);
 							}
 							if (part.type.startsWith("tool-")) {
-								return <MantleToolDisplay key={i} part={part as ToolUIPart} />;
+								return (
+									<MantleToolDisplay
+										key={i}
+										part={part as ToolUIPart}
+										onTxComplete={onTxComplete}
+									/>
+								);
 							}
 							return null;
 						})}

@@ -1108,6 +1108,22 @@ export const getSwapQuote = createTool({
 
 ---
 
+![bg](./img/10.png)
+
+---
+
+![bg](./img/11.png)
+
+---
+
+![bg](./img/12.png)
+
+---
+
+![bg](./img/13.png)
+
+---
+
 <!-- _class: section -->
 
 ## 05 — まとめ

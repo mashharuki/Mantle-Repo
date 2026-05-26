@@ -1,14 +1,65 @@
 import {
-	getAgentAddress,
-	getAgentWalletClient,
-	getExplorerUrl,
+	CHAIN_IDS,
 	getPublicClient,
+	type Network,
+	type PendingSignatureOutput,
 } from "@/lib/viem-clients";
 import { createTool } from "@mastra/core/tools";
-import { erc20Abi, formatUnits, parseUnits } from "viem";
+import { encodeFunctionData, erc20Abi, formatUnits, parseUnits } from "viem";
 import { z } from "zod";
 
-type Network = "mainnet" | "testnet";
+// ---------------------------------------------------------------------------
+// Shared: pending-signature output schema (unsigned tx for client-side signing)
+// ---------------------------------------------------------------------------
+const unsignedTxSchema = z.object({
+	to: z.string(),
+	data: z.string(),
+	value: z.string(),
+	gas: z.string().optional(),
+	chainId: z.number(),
+});
+
+const pendingSignatureOutputSchema = z.object({
+	type: z.literal("pending_signature"),
+	description: z.string(),
+	unsignedTx: unsignedTxSchema,
+	simulationPassed: z.boolean(),
+	estimatedFee: z.string(),
+});
+
+/** Estimate gas with a 20 % safety buffer. Falls back to undefined on error. */
+async function estimateGasWithBuffer(
+	network: Network,
+	params: {
+		account: `0x${string}`;
+		to: `0x${string}`;
+		data: `0x${string}`;
+		value: bigint;
+	},
+): Promise<bigint | undefined> {
+	try {
+		const publicClient = getPublicClient(network);
+		const estimated = await publicClient.estimateGas(params);
+		return (estimated * 12n) / 10n;
+	} catch {
+		return undefined;
+	}
+}
+
+/** Get a rough fee estimate string (MNT). */
+async function getEstimatedFee(
+	network: Network,
+	gas: bigint | undefined,
+): Promise<string> {
+	if (!gas) return "unknown (wallet will estimate)";
+	try {
+		const publicClient = getPublicClient(network);
+		const gasPrice = await publicClient.getGasPrice();
+		return `~${formatUnits(gas * gasPrice, 18)} MNT`;
+	} catch {
+		return "unknown";
+	}
+}
 
 // Agni Finance contract addresses per network
 const AGNI_ADDRESSES: Record<
@@ -206,43 +257,54 @@ function resolveToken(
 
 const networkSchema = z.enum(["mainnet", "testnet"]).default("testnet");
 
+/** Fallback gas limit used when estimation is skipped (testnet or no fromAddress). */
+const DEFAULT_GAS_TRANSFER = 21_000n;
+const DEFAULT_GAS_APPROVE = 100_000n;
+const DEFAULT_GAS_SWAP = 500_000n;
+
 export const sendNativeToken = createTool({
 	id: "send-native-token",
 	description:
-		"Send native MNT tokens from the agent wallet to a specified address. Requires AGENT_PRIVATE_KEY to be set.",
+		"Build an unsigned MNT native-token transfer transaction for the user to sign with their client wallet (MetaMask). " +
+		"Returns a pending_signature object; do NOT attempt to sign or broadcast server-side.",
 	inputSchema: z.object({
 		to: z.string().describe("Recipient address (0x...)"),
 		amount: z.string().describe("Amount in MNT (human-readable, e.g. '0.001')"),
+		fromAddress: z
+			.string()
+			.optional()
+			.describe("Sender address — the connected client wallet (0x...)"),
 		network: networkSchema.describe("Mantle network"),
 	}),
-	outputSchema: z.object({
-		txHash: z.string(),
-		explorerUrl: z.string(),
-		from: z.string(),
-		to: z.string(),
-		amountMNT: z.string(),
-		network: z.string(),
-	}),
-	execute: async (input) => {
+	outputSchema: pendingSignatureOutputSchema,
+	execute: async (input): Promise<PendingSignatureOutput> => {
 		const network = input.network ?? "testnet";
-		const walletClient = getAgentWalletClient(network);
-		const agentAddress = getAgentAddress();
+		const chainId = CHAIN_IDS[network];
 		const value = parseUnits(input.amount, 18);
 
-		const txHash = await walletClient.sendTransaction({
-			to: input.to as `0x${string}`,
-			value,
-			account: walletClient.account!,
-			chain: walletClient.chain,
-		});
+		let gasEstimate: bigint | undefined;
+		if (input.fromAddress) {
+			gasEstimate = await estimateGasWithBuffer(network, {
+				account: input.fromAddress as `0x${string}`,
+				to: input.to as `0x${string}`,
+				data: "0x",
+				value,
+			});
+		}
+		gasEstimate = gasEstimate ?? DEFAULT_GAS_TRANSFER;
 
 		return {
-			txHash,
-			explorerUrl: getExplorerUrl(txHash, network),
-			from: agentAddress,
-			to: input.to,
-			amountMNT: input.amount,
-			network,
+			type: "pending_signature",
+			description: `Send ${input.amount} MNT to ${input.to}`,
+			unsignedTx: {
+				to: input.to,
+				data: "0x",
+				value: value.toString(),
+				gas: gasEstimate.toString(),
+				chainId,
+			},
+			simulationPassed: !!input.fromAddress,
+			estimatedFee: await getEstimatedFee(network, gasEstimate),
 		};
 	},
 });
@@ -250,7 +312,8 @@ export const sendNativeToken = createTool({
 export const approveERC20Token = createTool({
 	id: "approve-erc20-token",
 	description:
-		"Approve a spender to use ERC-20 tokens from the agent wallet. Requires AGENT_PRIVATE_KEY to be set.",
+		"Build an unsigned ERC-20 approval transaction for the user to sign with their client wallet (MetaMask). " +
+		"Returns a pending_signature object; do NOT attempt to sign or broadcast server-side.",
 	inputSchema: z.object({
 		tokenAddress: z.string().describe("ERC-20 token contract address (0x...)"),
 		spender: z.string().describe("Spender address to approve (0x...)"),
@@ -262,49 +325,64 @@ export const approveERC20Token = createTool({
 			.int()
 			.default(18)
 			.describe("Token decimals (default: 18)"),
+		fromAddress: z
+			.string()
+			.optional()
+			.describe("Token holder address — the connected client wallet (0x...)"),
 		network: networkSchema.describe("Mantle network"),
 	}),
-	outputSchema: z.object({
-		txHash: z.string(),
-		explorerUrl: z.string(),
-		tokenAddress: z.string(),
-		spender: z.string(),
-		amount: z.string(),
-		network: z.string(),
-	}),
-	execute: async (input) => {
+	outputSchema: pendingSignatureOutputSchema,
+	execute: async (input): Promise<PendingSignatureOutput> => {
 		const network = input.network ?? "testnet";
-		const walletClient = getAgentWalletClient(network);
-		const publicClient = getPublicClient(network);
+		const chainId = CHAIN_IDS[network];
 		const decimals = input.decimals ?? 18;
 		const amountWei = parseUnits(input.amount, decimals);
+		const tokenAddress = input.tokenAddress as `0x${string}`;
 
-		const { request } = await publicClient.simulateContract({
-			address: input.tokenAddress as `0x${string}`,
+		const calldata = encodeFunctionData({
 			abi: erc20Abi,
 			functionName: "approve",
 			args: [input.spender as `0x${string}`, amountWei],
-			account: walletClient.account,
 		});
-		const txHash = await walletClient.writeContract(request);
+
+		let gasEstimate: bigint | undefined;
+		if (input.fromAddress) {
+			gasEstimate = await estimateGasWithBuffer(network, {
+				account: input.fromAddress as `0x${string}`,
+				to: tokenAddress,
+				data: calldata,
+				value: 0n,
+			});
+		}
+		gasEstimate = gasEstimate ?? DEFAULT_GAS_APPROVE;
 
 		return {
-			txHash,
-			explorerUrl: getExplorerUrl(txHash, network),
-			tokenAddress: input.tokenAddress,
-			spender: input.spender,
-			amount: input.amount,
-			network,
+			type: "pending_signature",
+			description: `Approve ${input.amount} tokens (${input.tokenAddress.slice(0, 8)}…) for spender ${input.spender.slice(0, 8)}…`,
+			unsignedTx: {
+				to: input.tokenAddress,
+				data: calldata,
+				value: "0",
+				gas: gasEstimate.toString(),
+				chainId,
+			},
+			simulationPassed: !!input.fromAddress,
+			estimatedFee: await getEstimatedFee(network, gasEstimate),
 		};
 	},
 });
 
+/**
+ * @deprecated Use the 3-step flow (agniSwapQuote → agniSwapApprove → agniSwapExecute) instead.
+ * This single-step tool no longer executes on-chain; it now returns an unsigned transaction
+ * for the quote step only. Kept for backward compatibility.
+ */
 export const executeAgniSwap = createTool({
 	id: "execute-agni-swap",
 	description:
-		"Execute a token swap on Agni Finance (Uniswap V3 fork) on Mantle Network. " +
-		"By default, quotes via QuoterV2 first; set amountOutMinimum to skip the quote step entirely (useful on testnet where pools may not exist). " +
-		"Requires AGENT_PRIVATE_KEY to be set.",
+		"⚠️ DEPRECATED: Use agniSwapQuote → agniSwapApprove → agniSwapExecute instead. " +
+		"This tool only returns a quote and is no longer able to execute swaps directly. " +
+		"Redirect the user to the 3-step flow.",
 	inputSchema: z.object({
 		tokenIn: z.string().describe("Input token symbol (e.g. WMNT) or address"),
 		tokenOut: z.string().describe("Output token symbol (e.g. USDT) or address"),
@@ -352,163 +430,10 @@ export const executeAgniSwap = createTool({
 			swap: z.string(),
 		}),
 	}),
-	execute: async (input) => {
-		const network = input.network ?? "testnet";
-		const feeTier = input.feeTier ?? 2500;
-		const slippageBps = input.slippageBps ?? 50;
-		const addresses = AGNI_ADDRESSES[network];
-
-		const tokenInInfo = resolveToken(input.tokenIn, network);
-		const tokenOutInfo = resolveToken(input.tokenOut, network);
-		if (!tokenInInfo) throw new Error(`Unknown tokenIn: ${input.tokenIn}`);
-		if (!tokenOutInfo) throw new Error(`Unknown tokenOut: ${input.tokenOut}`);
-
-		const amountInWei = parseUnits(input.amountIn, tokenInInfo.decimals);
-		const agentAddress = getAgentAddress();
-		const publicClient = getPublicClient(network);
-		const walletClient = getAgentWalletClient(network);
-
-		// Step 1: Determine amountOutMinimum
-		let amountOutMin: bigint;
-		let quotedAmountOut: string | undefined;
-		let quoteSkipped: boolean;
-
-		if (input.amountOutMinimum !== undefined) {
-			// User-provided minimum — skip QuoterV2 entirely
-			amountOutMin = parseUnits(input.amountOutMinimum, tokenOutInfo.decimals);
-			quoteSkipped = true;
-		} else {
-			// Attempt QuoterV2 quote; fall back to 0 if pool doesn't exist
-			quoteSkipped = false;
-			try {
-				const quoteResult = await publicClient.simulateContract({
-					address: addresses.quoterV2,
-					abi: QUOTER_V2_ABI,
-					functionName: "quoteExactInputSingle",
-					args: [
-						{
-							tokenIn: tokenInInfo.address,
-							tokenOut: tokenOutInfo.address,
-							amountIn: amountInWei,
-							fee: feeTier,
-							sqrtPriceLimitX96: 0n,
-						},
-					],
-				});
-				const rawOut = quoteResult.result[0];
-				amountOutMin = (rawOut * BigInt(10000 - slippageBps)) / 10000n;
-				quotedAmountOut = formatUnits(rawOut, tokenOutInfo.decimals);
-			} catch {
-				// No pool on testnet — proceed with 0 minimum
-				amountOutMin = 0n;
-				quoteSkipped = true;
-			}
-		}
-
-		// Step 2: Approve tokenIn to SwapRouter
-		let approveTxHash: string | undefined;
-		try {
-			const { request: approveRequest } = await publicClient.simulateContract({
-				address: tokenInInfo.address,
-				abi: erc20Abi,
-				functionName: "approve",
-				args: [addresses.swapRouter, amountInWei],
-				account: walletClient.account,
-			});
-			approveTxHash = await walletClient.writeContract(approveRequest);
-			// Wait for approval to be mined before executing the swap (60s timeout)
-			await publicClient.waitForTransactionReceipt({
-				hash: approveTxHash as `0x${string}`,
-				timeout: 60_000,
-			});
-		} catch (err) {
-			// Re-throw timeout/RPC errors so the tool fails fast instead of hanging
-			if (
-				err instanceof Error &&
-				err.name !== "ContractFunctionExecutionError"
-			) {
-				throw err;
-			}
-			// ContractFunctionExecutionError = native token or pre-approved, safe to skip
-		}
-
-		// Step 3: Execute swap
-		const useDirect = isDirectPool(
-			tokenInInfo.address,
-			tokenOutInfo.address,
-			network,
+	execute: async (_input) => {
+		throw new Error(
+			"[execute-agni-swap] Deprecated. Use the 3-step flow: agniSwapQuote → agniSwapApprove → agniSwapExecute.",
 		);
-		let swapTxHash: string;
-
-		if (useDirect) {
-			// Single-hop via exactInput (2-token path) — matches Agni frontend behavior
-			const directPath = encodeV3Path(
-				[tokenInInfo.address, tokenOutInfo.address],
-				[feeTier],
-			);
-			const { request: swapRequest } = await publicClient.simulateContract({
-				address: addresses.swapRouter,
-				abi: SWAP_ROUTER_ABI,
-				functionName: "exactInput",
-				args: [
-					{
-						path: directPath,
-						recipient: agentAddress,
-						amountIn: amountInWei,
-						amountOutMinimum: amountOutMin,
-					},
-				],
-				account: walletClient.account,
-			});
-			swapTxHash = await walletClient.writeContract(swapRequest);
-		} else {
-			// Multi-hop: no direct pool → route through WMNT
-			const wmntAddr = KNOWN_TOKENS[network].WMNT!.address;
-			const path = encodeV3Path(
-				[tokenInInfo.address, wmntAddr, tokenOutInfo.address],
-				[feeTier, feeTier],
-			);
-			console.log(
-				`[execute-agni-swap] Multi-hop path: ${input.tokenIn} → WMNT → ${input.tokenOut}`,
-			);
-			const { request: swapRequest } = await publicClient.simulateContract({
-				address: addresses.swapRouter,
-				abi: SWAP_ROUTER_ABI,
-				functionName: "exactInput",
-				args: [
-					{
-						path,
-						recipient: agentAddress,
-						amountIn: amountInWei,
-						amountOutMinimum: amountOutMin,
-					},
-				],
-				account: walletClient.account,
-			});
-			swapTxHash = await walletClient.writeContract(swapRequest);
-		}
-		console.log(`[execute-agni-swap] Swap tx sent: ${swapTxHash}`);
-		console.log(
-			`[execute-agni-swap] Explorer: ${getExplorerUrl(swapTxHash, network)}`,
-		);
-
-		return {
-			approveTxHash,
-			swapTxHash,
-			amountIn: input.amountIn,
-			amountOutMinimum: formatUnits(amountOutMin, tokenOutInfo.decimals),
-			quotedAmountOut,
-			tokenIn: input.tokenIn,
-			tokenOut: input.tokenOut,
-			network,
-			quoteSkipped,
-			explorerUrls: {
-				approve: approveTxHash
-					? getExplorerUrl(approveTxHash, network)
-					: undefined,
-				swap: getExplorerUrl(swapTxHash, network),
-			},
-		};
 	},
 });
 
@@ -516,8 +441,8 @@ export const executeAgniSwap = createTool({
 // Step-based swap tools (preferred over executeAgniSwap for better UX)
 // Use these in sequence so the agent can report progress at each step:
 //   1. agniSwapQuote  → get estimated output
-//   2. agniSwapApprove → send approve tx and wait for confirmation
-//   3. agniSwapExecute → send the swap tx
+//   2. agniSwapApprove → build unsigned approval tx for client signing
+//   3. agniSwapExecute → build unsigned swap tx for client signing
 // ---------------------------------------------------------------------------
 
 const ALL_FEE_TIERS = [100, 500, 2500, 10000] as const;
@@ -734,9 +659,9 @@ export const agniSwapQuote = createTool({
 export const agniSwapApprove = createTool({
 	id: "agni-swap-approve",
 	description:
-		"Step 2/3 of Agni Finance swap: Approve tokenIn for the Agni SwapRouter and wait for confirmation. " +
-		"Must be called after agni-swap-quote and before agni-swap-execute. " +
-		"Waits up to 90s for the approval tx to be mined.",
+		"Step 2/3 of Agni Finance swap: Build an unsigned ERC-20 approval transaction for the Agni SwapRouter. " +
+		"Returns a pending_signature object for the user to sign with their client wallet (MetaMask). " +
+		"Call after agni-swap-quote. After the user signs and broadcasts, proceed to agni-swap-execute.",
 	inputSchema: z.object({
 		tokenIn: z.string().describe("Input token symbol (e.g. WMNT) or address"),
 		amountIn: z
@@ -744,79 +669,66 @@ export const agniSwapApprove = createTool({
 			.describe(
 				"Amount to approve in human-readable units (must match the swap amount)",
 			),
+		fromAddress: z
+			.string()
+			.optional()
+			.describe("Token holder address — the connected client wallet (0x...)"),
 		network: networkSchema.describe("Mantle network"),
 	}),
-	outputSchema: z.object({
-		approved: z.boolean(),
-		approveTxHash: z.string().optional(),
-		explorerUrl: z.string().optional(),
-		skippedReason: z.string().optional(),
-		network: z.string(),
-	}),
-	execute: async (input) => {
+	outputSchema: pendingSignatureOutputSchema,
+	execute: async (input): Promise<PendingSignatureOutput> => {
 		const network = input.network ?? "testnet";
+		const chainId = CHAIN_IDS[network];
 		const addresses = AGNI_ADDRESSES[network];
 
 		const tokenInInfo = resolveToken(input.tokenIn, network);
 		if (!tokenInInfo) throw new Error(`Unknown tokenIn: ${input.tokenIn}`);
 
-		const publicClient = getPublicClient(network);
-		const walletClient = getAgentWalletClient(network);
 		const amountInWei = parseUnits(input.amountIn, tokenInInfo.decimals);
 
+		const calldata = encodeFunctionData({
+			abi: erc20Abi,
+			functionName: "approve",
+			args: [addresses.swapRouter, amountInWei],
+		});
+
+		let gasEstimate: bigint | undefined;
+		if (input.fromAddress) {
+			gasEstimate = await estimateGasWithBuffer(network, {
+				account: input.fromAddress as `0x${string}`,
+				to: tokenInInfo.address,
+				data: calldata,
+				value: 0n,
+			});
+		}
+		gasEstimate = gasEstimate ?? DEFAULT_GAS_APPROVE;
+
 		console.log(
-			`[agni-swap-approve] Step 2/3: Approving ${input.amountIn} ${input.tokenIn} for SwapRouter (network=${network})`,
+			`[agni-swap-approve] Step 2/3: Built unsigned approval for ${input.amountIn} ${input.tokenIn} → SwapRouter (network=${network})`,
 		);
 
-		try {
-			const { request: approveRequest } = await publicClient.simulateContract({
-				address: tokenInInfo.address,
-				abi: erc20Abi,
-				functionName: "approve",
-				args: [addresses.swapRouter, amountInWei],
-				account: walletClient.account,
-			});
-			const approveTxHash = await walletClient.writeContract(approveRequest);
-			console.log(
-				`[agni-swap-approve] Approval tx sent: ${approveTxHash} — waiting for confirmation...`,
-			);
-			await publicClient.waitForTransactionReceipt({
-				hash: approveTxHash as `0x${string}`,
-				timeout: 90_000,
-			});
-			console.log(`[agni-swap-approve] Approval confirmed: ${approveTxHash}`);
-			return {
-				approved: true,
-				approveTxHash,
-				explorerUrl: getExplorerUrl(approveTxHash, network),
-				network,
-			};
-		} catch (err) {
-			if (
-				err instanceof Error &&
-				err.name === "ContractFunctionExecutionError"
-			) {
-				// Native token or already approved — safe to proceed
-				console.log(
-					`[agni-swap-approve] Skipped: native token or already approved`,
-				);
-				return {
-					approved: true,
-					skippedReason: "native token or already approved",
-					network,
-				};
-			}
-			throw err;
-		}
+		return {
+			type: "pending_signature",
+			description: `Approve ${input.amountIn} ${input.tokenIn} for Agni SwapRouter`,
+			unsignedTx: {
+				to: tokenInInfo.address,
+				data: calldata,
+				value: "0",
+				gas: gasEstimate.toString(),
+				chainId,
+			},
+			simulationPassed: !!input.fromAddress,
+			estimatedFee: await getEstimatedFee(network, gasEstimate),
+		};
 	},
 });
 
 export const agniSwapExecute = createTool({
 	id: "agni-swap-execute",
 	description:
-		"Step 3/3 of Agni Finance swap: Execute the swap on Agni Finance. " +
-		"Must be called after agni-swap-approve. " +
-		"Pass amountOutMinimum and isMultiHop from the quote step.",
+		"Step 3/3 of Agni Finance swap: Build an unsigned swap transaction on Agni Finance. " +
+		"Returns a pending_signature object for the user to sign with their client wallet (MetaMask). " +
+		"Must be called after agni-swap-approve. fromAddress is required (swap tokens are sent to this address).",
 	inputSchema: z.object({
 		tokenIn: z.string().describe("Input token symbol (e.g. WMNT) or address"),
 		tokenOut: z.string().describe("Output token symbol (e.g. USDT) or address"),
@@ -839,21 +751,17 @@ export const agniSwapExecute = createTool({
 			.describe(
 				"Pass isMultiHop from the quote step. If true, routes through WMNT (exactInput). If omitted, auto-detects.",
 			),
+		fromAddress: z
+			.string()
+			.describe(
+				"Connected client wallet address — used as swap recipient (0x...). REQUIRED.",
+			),
 		network: networkSchema.describe("Mantle network"),
 	}),
-	outputSchema: z.object({
-		swapTxHash: z.string(),
-		explorerUrl: z.string(),
-		txStatus: z.enum(["success", "reverted"]),
-		blockNumber: z.string(),
-		tokenIn: z.string(),
-		tokenOut: z.string(),
-		amountIn: z.string(),
-		amountOutMinimum: z.string(),
-		network: z.string(),
-	}),
-	execute: async (input) => {
+	outputSchema: pendingSignatureOutputSchema,
+	execute: async (input): Promise<PendingSignatureOutput> => {
 		const network = input.network ?? "testnet";
+		const chainId = CHAIN_IDS[network];
 		const feeTier = input.feeTier ?? 2500;
 		const addresses = AGNI_ADDRESSES[network];
 
@@ -862,17 +770,13 @@ export const agniSwapExecute = createTool({
 		if (!tokenInInfo) throw new Error(`Unknown tokenIn: ${input.tokenIn}`);
 		if (!tokenOutInfo) throw new Error(`Unknown tokenOut: ${input.tokenOut}`);
 
-		const publicClient = getPublicClient(network);
-		const walletClient = getAgentWalletClient(network);
-		const agentAddress = getAgentAddress();
-
+		const recipient = input.fromAddress as `0x${string}`;
 		const amountInWei = parseUnits(input.amountIn, tokenInInfo.decimals);
 		const amountOutMin = parseUnits(
 			input.amountOutMinimum,
 			tokenOutInfo.decimals,
 		);
-		let swapTxHash: string;
-		// isMultiHop from quote step takes priority; fall back to address-based heuristic
+
 		const useDirect =
 			input.isMultiHop === true
 				? false
@@ -880,147 +784,72 @@ export const agniSwapExecute = createTool({
 					? true
 					: isDirectPool(tokenInInfo.address, tokenOutInfo.address, network);
 
-		if (network === "testnet") {
-			// Skip simulation on testnet — pools may not exist and simulateContract would hang/revert.
-			// Also provide explicit gas to bypass eth_estimateGas which would also fail without a live pool.
-			if (useDirect) {
-				// Single-hop via exactInput (2-token path) — matches Agni frontend behavior
-				const directPath = encodeV3Path(
-					[tokenInInfo.address, tokenOutInfo.address],
-					[feeTier],
-				);
-				console.log(
-					`[agni-swap-execute] Step 3/3: Sending exactInput (direct 2-token path, testnet) ${input.amountIn} ${input.tokenIn} → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum}, feeTier=${feeTier})`,
-				);
-				swapTxHash = await walletClient.writeContract({
-					address: addresses.swapRouter,
-					abi: SWAP_ROUTER_ABI,
-					functionName: "exactInput",
-					args: [
-						{
-							path: directPath,
-							recipient: agentAddress,
-							amountIn: amountInWei,
-							amountOutMinimum: amountOutMin,
-						},
-					],
-					account: walletClient.account,
-					chain: walletClient.chain,
-					gas: 500_000n,
-				});
-			} else {
-				// Multi-hop: route through WMNT
-				const wmntAddr = KNOWN_TOKENS[network].WMNT!.address;
-				const path = encodeV3Path(
-					[tokenInInfo.address, wmntAddr, tokenOutInfo.address],
-					[feeTier, feeTier],
-				);
-				console.log(
-					`[agni-swap-execute] Step 3/3: Sending exactInput (multi-hop via WMNT, testnet) ${input.amountIn} ${input.tokenIn} → WMNT → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum})`,
-				);
-				swapTxHash = await walletClient.writeContract({
-					address: addresses.swapRouter,
-					abi: SWAP_ROUTER_ABI,
-					functionName: "exactInput",
-					args: [
-						{
-							path,
-							recipient: agentAddress,
-							amountIn: amountInWei,
-							amountOutMinimum: amountOutMin,
-						},
-					],
-					account: walletClient.account,
-					chain: walletClient.chain,
-					gas: 500_000n,
-				});
-			}
+		let calldata: `0x${string}`;
+		if (useDirect) {
+			const directPath = encodeV3Path(
+				[tokenInInfo.address, tokenOutInfo.address],
+				[feeTier],
+			);
+			calldata = encodeFunctionData({
+				abi: SWAP_ROUTER_ABI,
+				functionName: "exactInput",
+				args: [
+					{
+						path: directPath,
+						recipient,
+						amountIn: amountInWei,
+						amountOutMinimum: amountOutMin,
+					},
+				],
+			});
 		} else {
-			if (useDirect) {
-				// Single-hop via exactInput (2-token path) — matches Agni frontend behavior
-				const directPath = encodeV3Path(
-					[tokenInInfo.address, tokenOutInfo.address],
-					[feeTier],
-				);
-				console.log(
-					`[agni-swap-execute] Step 3/3: Simulating exactInput (direct 2-token path) ${input.amountIn} ${input.tokenIn} → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum}, feeTier=${feeTier}, network=${network})`,
-				);
-				const { request: swapRequest } = await publicClient.simulateContract({
-					address: addresses.swapRouter,
-					abi: SWAP_ROUTER_ABI,
-					functionName: "exactInput",
-					args: [
-						{
-							path: directPath,
-							recipient: agentAddress,
-							amountIn: amountInWei,
-							amountOutMinimum: amountOutMin,
-						},
-					],
-					account: walletClient.account,
-				});
-				swapTxHash = await walletClient.writeContract(swapRequest);
-			} else {
-				// Multi-hop: route through WMNT
-				const wmntAddr = KNOWN_TOKENS[network].WMNT!.address;
-				const path = encodeV3Path(
-					[tokenInInfo.address, wmntAddr, tokenOutInfo.address],
-					[feeTier, feeTier],
-				);
-				console.log(
-					`[agni-swap-execute] Step 3/3: Simulating exactInput (multi-hop via WMNT) ${input.amountIn} ${input.tokenIn} → WMNT → ${input.tokenOut} (amountOutMin=${input.amountOutMinimum}, network=${network})`,
-				);
-				const { request: swapRequest } = await publicClient.simulateContract({
-					address: addresses.swapRouter,
-					abi: SWAP_ROUTER_ABI,
-					functionName: "exactInput",
-					args: [
-						{
-							path,
-							recipient: agentAddress,
-							amountIn: amountInWei,
-							amountOutMinimum: amountOutMin,
-						},
-					],
-					account: walletClient.account,
-				});
-				swapTxHash = await walletClient.writeContract(swapRequest);
-			}
+			const wmntAddr = KNOWN_TOKENS[network].WMNT!.address;
+			const path = encodeV3Path(
+				[tokenInInfo.address, wmntAddr, tokenOutInfo.address],
+				[feeTier, feeTier],
+			);
+			calldata = encodeFunctionData({
+				abi: SWAP_ROUTER_ABI,
+				functionName: "exactInput",
+				args: [
+					{
+						path,
+						recipient,
+						amountIn: amountInWei,
+						amountOutMinimum: amountOutMin,
+					},
+				],
+			});
 		}
-		console.log(`[agni-swap-execute] Swap tx sent: ${swapTxHash}`);
-		console.log(
-			`[agni-swap-execute] Explorer: ${getExplorerUrl(swapTxHash, network)}`,
-		);
-		console.log(`[agni-swap-execute] Waiting for receipt...`);
 
-		const receipt = await publicClient.waitForTransactionReceipt({
-			hash: swapTxHash as `0x${string}`,
-			timeout: 90_000,
-		});
-
-		if (receipt.status === "reverted") {
-			console.error(
-				`[agni-swap-execute] REVERTED: ${swapTxHash} (block ${receipt.blockNumber})`,
-			);
-			throw new Error(
-				`Swap transaction reverted on-chain. TX: ${swapTxHash} | Explorer: ${getExplorerUrl(swapTxHash, network)}`,
-			);
+		let gasEstimate: bigint = DEFAULT_GAS_SWAP;
+		if (network === "mainnet") {
+			const est = await estimateGasWithBuffer(network, {
+				account: recipient,
+				to: addresses.swapRouter,
+				data: calldata,
+				value: 0n,
+			});
+			if (est) gasEstimate = est;
 		}
 
 		console.log(
-			`[agni-swap-execute] Confirmed in block ${receipt.blockNumber}: ${swapTxHash}`,
+			`[agni-swap-execute] Step 3/3: Built unsigned exactInput tx (${useDirect ? "direct" : "multi-hop"}) ` +
+				`${input.amountIn} ${input.tokenIn} → ${input.tokenOut}, recipient=${recipient}, network=${network}`,
 		);
 
 		return {
-			swapTxHash,
-			explorerUrl: getExplorerUrl(swapTxHash, network),
-			txStatus: receipt.status,
-			blockNumber: receipt.blockNumber.toString(),
-			tokenIn: input.tokenIn,
-			tokenOut: input.tokenOut,
-			amountIn: input.amountIn,
-			amountOutMinimum: input.amountOutMinimum,
-			network,
+			type: "pending_signature",
+			description: `Swap ${input.amountIn} ${input.tokenIn} → ${input.tokenOut} on Agni Finance`,
+			unsignedTx: {
+				to: addresses.swapRouter,
+				data: calldata,
+				value: "0",
+				gas: gasEstimate.toString(),
+				chainId,
+			},
+			simulationPassed: false,
+			estimatedFee: await getEstimatedFee(network, gasEstimate),
 		};
 	},
 });

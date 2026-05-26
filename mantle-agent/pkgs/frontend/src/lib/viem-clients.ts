@@ -1,8 +1,12 @@
-import { createPublicClient, createWalletClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { createPublicClient, http } from "viem";
 import { mantle, mantleSepoliaTestnet } from "viem/chains";
 
-type Network = "mainnet" | "testnet";
+export type Network = "mainnet" | "testnet";
+
+export const CHAIN_IDS: Record<Network, number> = {
+	mainnet: 5000,
+	testnet: 5003,
+};
 
 function getRpcUrl(network: Network): string {
 	if (network === "testnet") {
@@ -21,33 +25,27 @@ export function getPublicClient(network: Network = "mainnet") {
 	});
 }
 
-export function getAgentWalletClient(network: Network = "mainnet") {
-	const pk = process.env.AGENT_PRIVATE_KEY;
-	if (!pk) throw new Error("AGENT_PRIVATE_KEY environment variable is not set");
-	const privateKey = pk.startsWith("0x")
-		? (pk as `0x${string}`)
-		: (`0x${pk}` as `0x${string}`);
-	const account = privateKeyToAccount(privateKey);
-	const chain = network === "testnet" ? mantleSepoliaTestnet : mantle;
-	return createWalletClient({
-		account,
-		chain,
-		transport: http(getRpcUrl(network), { timeout: RPC_TIMEOUT_MS }),
-	});
-}
-
-export function getAgentAddress(): `0x${string}` {
-	const pk = process.env.AGENT_PRIVATE_KEY;
-	if (!pk) throw new Error("AGENT_PRIVATE_KEY environment variable is not set");
-	const privateKey = pk.startsWith("0x")
-		? (pk as `0x${string}`)
-		: (`0x${pk}` as `0x${string}`);
-	return privateKeyToAccount(privateKey).address;
-}
-
 export function getExplorerUrl(txHash: string, network: Network): string {
 	if (network === "testnet") {
 		return `https://explorer.sepolia.mantle.xyz/tx/${txHash}`;
 	}
 	return `https://explorer.mantle.xyz/tx/${txHash}`;
 }
+
+/** Unsigned transaction payload returned by write tools for client-side signing. */
+export type UnsignedTxPayload = {
+	to: string;
+	data: string;
+	value: string;
+	gas?: string;
+	chainId: number;
+};
+
+/** Standard output schema shape for tools that return an unsigned transaction. */
+export type PendingSignatureOutput = {
+	type: "pending_signature";
+	description: string;
+	unsignedTx: UnsignedTxPayload;
+	simulationPassed: boolean;
+	estimatedFee: string;
+};

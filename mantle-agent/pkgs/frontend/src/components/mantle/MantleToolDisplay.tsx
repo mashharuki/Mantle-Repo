@@ -1,8 +1,10 @@
+import type { PendingSignatureOutput } from "@/lib/viem-clients";
 import { MANTLE_BLUE, MANTLE_GREEN } from "@/utils/constants";
 import { prettifyToolName } from "@/utils/helpers";
 import { ToolUIPart } from "ai";
 import { Loader2 } from "lucide-react";
 import { Tool, ToolContent, ToolInput, ToolOutput } from "../ai-elements/tool";
+import { TxSignCard } from "./TxSignCard";
 
 function StatusBadge({ state }: { state: ToolUIPart["state"] }) {
 	const isDone = state === "output-available";
@@ -51,9 +53,36 @@ function StatusBadge({ state }: { state: ToolUIPart["state"] }) {
 	);
 }
 
-export function MantleToolDisplay({ part }: { part: ToolUIPart }) {
+export function MantleToolDisplay({
+	part,
+	onTxComplete,
+}: {
+	part: ToolUIPart;
+	onTxComplete?: (txHash: string, description: string) => void;
+}) {
 	const hasOutput =
 		part.state === "output-available" || part.state === "output-error";
+
+	// Render TxSignCard inline when output is a pending_signature
+	if (
+		hasOutput &&
+		part.output !== undefined &&
+		typeof part.output === "object" &&
+		part.output !== null &&
+		(part.output as { type?: string }).type === "pending_signature"
+	) {
+		const sig = part.output as unknown as PendingSignatureOutput;
+		return (
+			<TxSignCard
+				unsignedTx={sig.unsignedTx}
+				description={sig.description}
+				estimatedFee={sig.estimatedFee}
+				simulationPassed={sig.simulationPassed}
+				onComplete={(hash) => onTxComplete?.(hash, sig.description)}
+				onReject={() => {}}
+			/>
+		);
+	}
 	return (
 		<Tool
 			className="my-2 overflow-hidden"

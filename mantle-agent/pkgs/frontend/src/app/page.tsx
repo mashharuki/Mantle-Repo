@@ -1,16 +1,16 @@
 "use client";
 
 import {
-	Conversation,
-	ConversationContent,
-	ConversationScrollButton,
+    Conversation,
+    ConversationContent,
+    ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import {
-	PromptInput,
-	PromptInputFooter,
-	PromptInputProvider,
-	PromptInputSubmit,
-	type PromptInputMessage,
+    PromptInput,
+    PromptInputFooter,
+    PromptInputProvider,
+    PromptInputSubmit,
+    type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { MantleEmptyState } from "@/components/mantle/MantleEmptyState";
 import { MantleMessage } from "@/components/mantle/MantleMessage";
@@ -18,6 +18,8 @@ import { MantlePromptArea } from "@/components/mantle/MantlePromptArea";
 import { MantleSidebar } from "@/components/mantle/MantleSidebar";
 import { MantleThinkingIndicator } from "@/components/mantle/MantleThinkingIndicator";
 import { MantleTopBar } from "@/components/mantle/MantleTopBar";
+import { WalletConnectBanner } from "@/components/mantle/WalletConnectBanner";
+import { useClientWallet } from "@/hooks/useClientWallet";
 import { useLocalStorageId } from "@/hooks/useLocalStorageId";
 import { MANTLE_BLUE, MANTLE_BORDER, MANTLE_DARK_BG } from "@/utils/constants";
 import { useChat } from "@ai-sdk/react";
@@ -86,6 +88,7 @@ function toUserFriendlyError(err: Error): { title: string; detail: string } {
 
 export default function Page() {
 	const threadId = useLocalStorageId("mantle-thread-id");
+	const { address: userWalletAddress } = useClientWallet();
 
 	const [transport] = useState(
 		() =>
@@ -97,6 +100,7 @@ export default function Page() {
 							thread: threadId,
 							resource: "user",
 						},
+						...(userWalletAddress ? { userWalletAddress } : {}),
 					},
 				}),
 			}),
@@ -139,6 +143,16 @@ export default function Page() {
 		window.location.reload();
 	}, []);
 
+	// After MetaMask signs + broadcasts, feed the txHash back to the agent
+	const continueAfterTx = useCallback(
+		(txHash: string, description: string) => {
+			sendMessage({
+				text: `Transaction sent.\nDescription: ${description}\nHash: ${txHash}\nPlease call wait-for-tx-receipt to confirm finality.`,
+			});
+		},
+		[sendMessage],
+	);
+
 	return (
 		<div
 			className="flex h-screen overflow-hidden"
@@ -159,6 +173,7 @@ export default function Page() {
 				{/* Conversation */}
 				<Conversation className="flex-1">
 					<ConversationContent className="mx-auto w-full max-w-3xl space-y-4 px-4 py-6">
+						<WalletConnectBanner />
 						{messages.length === 0 ? (
 							<MantleEmptyState onSuggestionClick={handleSuggestionClick} />
 						) : (
@@ -167,6 +182,7 @@ export default function Page() {
 									key={message.id}
 									message={message}
 									isStreaming={isStreaming && index === messages.length - 1}
+									onTxComplete={continueAfterTx}
 								/>
 							))
 						)}

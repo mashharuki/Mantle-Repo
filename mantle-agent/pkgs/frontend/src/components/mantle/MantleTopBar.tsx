@@ -10,7 +10,7 @@ import {
 	MANTLE_TEXT_PRIMARY,
 } from "@/utils/constants";
 import { ZapIcon } from "lucide-react";
-import { AgentWalletBadge } from "./AgentWalletBadge";
+import { ClientWalletBadge } from "./ClientWalletBadge";
 
 export function MantleTopBar({
 	sessionTitle,
@@ -51,7 +51,7 @@ export function MantleTopBar({
 			{/* Badges */}
 			<div className="flex shrink-0 items-center gap-2">
 				{/* Agent wallet badge */}
-				<AgentWalletBadge network="testnet" />
+				<ClientWalletBadge />
 
 				{/* Gas badge */}
 				<div

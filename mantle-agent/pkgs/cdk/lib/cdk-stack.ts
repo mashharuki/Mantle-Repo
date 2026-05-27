@@ -113,6 +113,7 @@ export class CdkStack extends cdk.Stack {
 		});
 
 		// ── Lambda Function（Docker イメージ） ──
+		// Lambda Web Adapterを使用
 		const fn = new lambda.DockerImageFunction(this, "NextjsFunction", {
 			functionName: "mantle-agent",
 			code: lambda.DockerImageCode.fromImageAsset(monoRepoRoot, {

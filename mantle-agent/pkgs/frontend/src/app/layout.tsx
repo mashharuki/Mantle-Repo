@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 	title: "Mantle AI Agent",
 	description:
 		"AI Agent for Mantle Network — DeFi, contracts, portfolio analysis, and more.",
+	icons: { icon: "/favicon.ico" },
 };
 
 export default function RootLayout({

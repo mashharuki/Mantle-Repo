@@ -3,7 +3,7 @@
 # ただし next build のワーカープロセスは Node.js で実行させるため
 # NEXT_BUILD_WORKER_FORCE_NODE=1 を設定（LWA 経由の本番起動も node で行う）
 # バージョンをピン留めして bun.lockb の互換性を保つ
-FROM oven/bun:1.1.4-slim AS builder
+FROM oven/bun:1.2-slim AS builder
 WORKDIR /app
 
 # frontend だけの依存関係をインストール

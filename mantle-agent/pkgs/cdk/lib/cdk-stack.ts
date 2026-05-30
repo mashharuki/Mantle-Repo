@@ -1,3 +1,4 @@
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
@@ -125,6 +126,18 @@ export class CdkStack extends cdk.Stack {
 			logGroup,
 			environment: lambdaEnv,
 		});
+
+		// Amazon Bedrock 呼び出し権限
+		fn.addToRolePolicy(
+			new iam.PolicyStatement({
+				effect: iam.Effect.ALLOW,
+				actions: [
+					"bedrock:InvokeModel",
+					"bedrock:InvokeModelWithResponseStream",
+				],
+				resources: ["*"],
+			}),
+		);
 
 		// SSM パラメータが Lambda より先に作成されるよう依存関係を追加
 		for (const param of Object.values(requiredParams)) {
